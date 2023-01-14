@@ -24,7 +24,7 @@ SDK_OBJS = $(SDK_SRCS:c=o)
 
 RP2_ASM_HEADER_DIRS = $(wildcard pico-sdk/src/rp2_common/*/asminclude/)
 RP2_HEADER_DIRS = $(wildcard pico-sdk/src/rp2_common/*/include/)
-RP2_ASM_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.S)
+RP2_ASM_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.S) bs2_default_padded_checksummed.S
 RP2_ASM_OBJS = $(RP2_ASM_SRCS:S=o)
 RP2_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.c)
 RP2_OBJS = $(RP2_SRCS:c=o)
