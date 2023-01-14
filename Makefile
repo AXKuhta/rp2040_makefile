@@ -52,7 +52,7 @@ MCU_FLAGS = -mcpu=cortex-m0plus -mthumb
 
 CC = arm-none-eabi-gcc
 FLAGS = $(MCU_FLAGS) $(DEFINES) $(INCLUDE) -g -c -O2 -Wall -Wextra
-LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) $(LDWRAP:%=-Wl,--wrap=%) --specs=nosys.specs
+LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map --specs=nosys.specs
 
 all: firmware.uf2
 
