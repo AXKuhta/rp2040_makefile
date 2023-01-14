@@ -54,14 +54,15 @@ CC = arm-none-eabi-gcc
 FLAGS = $(MCU_FLAGS) $(DEFINES) $(INCLUDE) -g -c -O2 -Wall -Wextra
 LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) $(LDWRAP:%=-Wl,--wrap=%) --specs=nosys.specs
 
-all: firmware.elf
+all: firmware.uf2
+
+firmware.uf2: firmware.elf
+	@echo " [ELF2UF2] firmware.uf2"
+	@./elf2uf2 firmware.elf firmware.uf2
 
 firmware.elf: $(OBJS)
 	@echo " [LD] firmware.elf"
-	$(CC) -g $(OBJS) -o firmware.elf $(LDFLAGS)
-
-boot_stage2.elf: $(RP2_ASM_OBJS)
-	@echo " [LD] boot2.elf"
+	@$(CC) -g $(OBJS) -o firmware.elf $(LDFLAGS)
 
 $(RP2_OBJS) $(SDK_OBJS) $(APP_OBJS): %.o: %.c
 	@echo " [CC]" $<
