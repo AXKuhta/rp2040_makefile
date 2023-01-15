@@ -23,14 +23,15 @@ APP_OBJS = $(APP_SRCS:c=o)
 EXCLUDE = 	pico-sdk/src/rp2_common/cyw43_driver/% \
 			pico-sdk/src/rp2_common/pico_cyw43_arch/% \
 			pico-sdk/src/rp2_common/pico_lwip/% \
-			pico-sdk/src/rp2_common/pico_stdio_usb/% \
 			pico-sdk/src/rp2_common/boot_stage2/% \
 			pico-sdk/src/rp2_common/pico_double/%_none.o \
 			pico-sdk/src/rp2_common/pico_float/%_none.o \
 			pico-sdk/src/rp2_common/pico_printf/printf_none.o
 
-HEADER_DIRS = $(RP2040_HW_HEADER_DIRS) $(SDK_HEADER_DIRS) $(RP2_ASM_HEADER_DIRS) $(RP2_HEADER_DIRS)
-OBJS = $(BOOT_ASM_OBJ) $(filter-out $(EXCLUDE),$(RP2_ASM_OBJS) $(RP2_OBJS) $(SDK_OBJS) $(APP_OBJS))
+include Makefile_TinyUSB
+
+HEADER_DIRS = $(RP2040_HW_HEADER_DIRS) $(SDK_HEADER_DIRS) $(RP2_ASM_HEADER_DIRS) $(RP2_HEADER_DIRS) $(TINYUSB_HEADER_DIRS)
+OBJS = $(BOOT_ASM_OBJ) $(filter-out $(EXCLUDE),$(RP2_ASM_OBJS) $(RP2_OBJS) $(SDK_OBJS) $(APP_OBJS)) $(TINYUSB_OBJS)
 
 LDSCRIPT = pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld
 ################################################################################
@@ -49,7 +50,7 @@ LDWRAP_PICO_PRINTF = sprintf snprintf vsnprintf
 LDWRAP_PICO_STDIO = printf vprintf puts putchar getchar
 LDWRAP = $(LDWRAP_PICO_BITOPS) $(LDWRAP_PICO_DIVIDER) $(LDWRAP_PICO_INT64) $(LDWRAP_PICO_FLOAT) $(LDWRAP_PICO_DOUBLE) $(LDWRAP_PICO_MALLOC) $(LDWRAP_PICO_MEM_OPS) $(LDWRAP_PICO_PRINTF) $(LDWRAP_PICO_STDIO)
 
-DEFINES =
+DEFINES = $(TINYUSB_DEFINES)
 INCLUDE = $(HEADER_DIRS:%=-I"%") -I"autogen/" -I"."
 MCU_FLAGS = -mcpu=cortex-m0plus -mthumb
 
@@ -70,7 +71,7 @@ firmware.elf: $(OBJS)
 	@echo " [LD] firmware.elf"
 	@$(CC) -g $(OBJS) -o firmware.elf $(LDFLAGS)
 
-$(RP2_OBJS) $(SDK_OBJS) $(APP_OBJS): %.o: %.c
+$(RP2_OBJS) $(SDK_OBJS) $(APP_OBJS) $(TINYUSB_OBJS): %.o: %.c
 	@echo " [CC]" $<
 	@$(CC) $(FLAGS) -o $@ $<
 
