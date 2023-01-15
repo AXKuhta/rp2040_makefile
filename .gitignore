@@ -1,2 +1,5 @@
 pico-sdk
-
+*.o
+*.elf
+*.map
+*.uf2
