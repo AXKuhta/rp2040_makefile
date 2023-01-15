@@ -63,7 +63,7 @@ LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memor
 ################################################################################
 all: firmware.uf2
 
-firmware.uf2: firmware.elf
+firmware.uf2: firmware.elf elf2uf2
 	@echo " [ELF2UF2] firmware.uf2"
 	@./elf2uf2 firmware.elf firmware.uf2
 
@@ -80,5 +80,6 @@ $(BOOT_ASM_OBJ) $(RP2_ASM_OBJS): %.o: %.S
 	@$(CC) $(FLAGS) -o $@ $<
 
 clean:
-	@rm -f $(OBJS)
+	@rm -f $(OBJS) firmware.uf2 firmware.elf firmware.map
 
+include Makefile_ELF2UF2
