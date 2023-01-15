@@ -1,9 +1,10 @@
 ################################################################################
 # SOURCE FILES
 ################################################################################
-LDSCRIPT = pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld
-
 RP2040_HW_HEADER_DIRS = $(wildcard pico-sdk/src/rp2040/*/include/)
+
+BOOT_ASM_SRC = autogen/bs2_default_padded_checksummed.S
+BOOT_ASM_OBJ = $(BOOT_ASM_SRC:S=o)
 
 SDK_HEADER_DIRS = $(wildcard pico-sdk/src/common/*/include/)
 SDK_SRCS = $(wildcard pico-sdk/src/common/*/*.c)
@@ -11,7 +12,7 @@ SDK_OBJS = $(SDK_SRCS:c=o)
 
 RP2_ASM_HEADER_DIRS = $(wildcard pico-sdk/src/rp2_common/*/asminclude/)
 RP2_HEADER_DIRS = $(wildcard pico-sdk/src/rp2_common/*/include/)
-RP2_ASM_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.S) bs2_default_padded_checksummed.S
+RP2_ASM_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.S)
 RP2_ASM_OBJS = $(RP2_ASM_SRCS:S=o)
 RP2_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.c)
 RP2_OBJS = $(RP2_SRCS:c=o)
@@ -29,7 +30,9 @@ EXCLUDE = 	pico-sdk/src/rp2_common/cyw43_driver/% \
 			pico-sdk/src/rp2_common/pico_printf/printf_none.o
 
 HEADER_DIRS = $(RP2040_HW_HEADER_DIRS) $(SDK_HEADER_DIRS) $(RP2_ASM_HEADER_DIRS) $(RP2_HEADER_DIRS)
-OBJS = $(filter-out $(EXCLUDE),$(RP2_ASM_OBJS) $(RP2_OBJS) $(SDK_OBJS) $(APP_OBJS))
+OBJS = $(BOOT_ASM_OBJ) $(filter-out $(EXCLUDE),$(RP2_ASM_OBJS) $(RP2_OBJS) $(SDK_OBJS) $(APP_OBJS))
+
+LDSCRIPT = pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld
 ################################################################################
 # COMPILER FLAGS
 ################################################################################
@@ -71,7 +74,7 @@ $(RP2_OBJS) $(SDK_OBJS) $(APP_OBJS): %.o: %.c
 	@echo " [CC]" $<
 	@$(CC) $(FLAGS) -o $@ $<
 
-$(RP2_ASM_OBJS): %.o: %.S
+$(BOOT_ASM_OBJ) $(RP2_ASM_OBJS): %.o: %.S
 	@echo " [AS]" $<
 	@$(CC) $(FLAGS) -o $@ $<
 
