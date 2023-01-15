@@ -51,7 +51,7 @@ LDWRAP_PICO_STDIO = printf vprintf puts putchar getchar
 LDWRAP = $(LDWRAP_PICO_BITOPS) $(LDWRAP_PICO_DIVIDER) $(LDWRAP_PICO_INT64) $(LDWRAP_PICO_FLOAT) $(LDWRAP_PICO_DOUBLE) $(LDWRAP_PICO_MALLOC) $(LDWRAP_PICO_MEM_OPS) $(LDWRAP_PICO_PRINTF) $(LDWRAP_PICO_STDIO)
 
 DEFINES = $(TINYUSB_DEFINES)
-INCLUDE = $(HEADER_DIRS:%=-I"%") -I"autogen/" -I"."
+INCLUDE = -I"." $(HEADER_DIRS:%=-I"%") -I"autogen/"
 MCU_FLAGS = -mcpu=cortex-m0plus -mthumb
 
 CC = arm-none-eabi-gcc
