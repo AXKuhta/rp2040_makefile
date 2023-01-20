@@ -199,6 +199,8 @@ packet_t build_ipv4_packet(const uint8_t* dst_ip, const uint8_t* src_ip, const p
 
 	memcpy(packet.data + 20, proto.data, proto.size);
 
+	id_u16++;
+
 	return packet;
 }
 
