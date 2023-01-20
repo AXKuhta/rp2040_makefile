@@ -26,7 +26,8 @@ EXCLUDE = 	pico-sdk/src/rp2_common/cyw43_driver/% \
 			pico-sdk/src/rp2_common/boot_stage2/% \
 			pico-sdk/src/rp2_common/pico_double/%_none.o \
 			pico-sdk/src/rp2_common/pico_float/%_none.o \
-			pico-sdk/src/rp2_common/pico_printf/printf_none.o
+			pico-sdk/src/rp2_common/pico_printf/printf_none.o \
+			pico-sdk/src/rp2_common/pico_stdio_usb/%
 
 include Makefile_TinyUSB
 

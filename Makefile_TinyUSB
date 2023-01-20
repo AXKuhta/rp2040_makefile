@@ -3,18 +3,19 @@
 # tinyusb/hw/bsp/rp2040/family.cmake
 # 
 
-TINYUSB_HEADER_DIRS_REL = src/ src/common/ hw/
+TINYUSB_HEADER_DIRS_REL = src/ src/common/ hw/ lib/networking/
 
 TINYUSB_COMMON_SRCS = src/tusb.c src/common/tusb_fifo.c
 TINYUSB_DEVICE_SRCS = src/portable/raspberrypi/rp2040/dcd_rp2040.c src/portable/raspberrypi/rp2040/rp2040_usb.c src/device/usbd.c src/device/usbd_control.c src/class/audio/audio_device.c src/class/cdc/cdc_device.c src/class/dfu/dfu_device.c src/class/dfu/dfu_rt_device.c src/class/hid/hid_device.c src/class/midi/midi_device.c src/class/msc/msc_device.c src/class/net/ecm_rndis_device.c src/class/net/ncm_device.c src/class/usbtmc/usbtmc_device.c src/class/vendor/vendor_device.c src/class/video/video_device.c
 TINYUSB_BSP_SRCS = hw/bsp/rp2040/family.c
+TINYUSB_NETWORKING_SRCS = lib/networking/rndis_reports.c
 
-TINYUSB_SRCS_REL = $(TINYUSB_COMMON_SRCS) $(TINYUSB_DEVICE_SRCS) $(TINYUSB_BSP_SRCS)
+TINYUSB_SRCS_REL = $(TINYUSB_COMMON_SRCS) $(TINYUSB_DEVICE_SRCS) $(TINYUSB_BSP_SRCS) $(TINYUSB_NETWORKING_SRCS)
 
 # Add tinyusb/ prefix to every folder and file + add USB enumeration fix from pico-sdk
 TINYUSB_HEADER_DIRS = $(TINYUSB_HEADER_DIRS_REL:%=tinyusb/%) pico-sdk/src/rp2_common/pico_fix/rp2040_usb_device_enumeration/include/
 TINYUSB_SRCS = $(TINYUSB_SRCS_REL:%=tinyusb/%) pico-sdk/src/rp2_common/pico_fix/rp2040_usb_device_enumeration/rp2040_usb_device_enumeration.c
 TINYUSB_OBJS = $(TINYUSB_SRCS:c=o)
 
-TINYUSB_DEFINES = -D"CFG_TUSB_MCU=OPT_MCU_RP2040" -D"CFG_TUSB_OS=OPT_OS_PICO" -D"PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=1" -D"LIB_PICO_STDIO_USB"
+TINYUSB_DEFINES = -D"CFG_TUSB_MCU=OPT_MCU_RP2040" -D"CFG_TUSB_OS=OPT_OS_PICO" -D"PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=1"
 
