@@ -25,24 +25,6 @@
  *
  */
 
-/*
-this appears as either a RNDIS or CDC-ECM USB virtual network adapter; the OS picks its preference
-
-RNDIS should be valid on Linux and Windows hosts, and CDC-ECM should be valid on Linux and macOS hosts
-
-The MCU appears to the host as IP address 192.168.7.1, and provides a DHCP server, DNS server, and web server.
-*/
-/*
-Some smartphones *may* work with this implementation as well, but likely have limited (broken) drivers,
-and likely their manufacturer has not tested such functionality.  Some code workarounds could be tried:
-
-The smartphone may only have an ECM driver, but refuse to automatically pick ECM (unlike the OSes above);
-try modifying ./examples/devices/net_lwip_webserver/usb_descriptors.c so that CONFIG_ID_ECM is default.
-
-The smartphone may be artificially picky about which Ethernet MAC address to recognize; if this happens, 
-try changing the first byte of tud_network_mac_address[] below from 0x02 to 0x00 (clearing bit 1).
-*/
-
 #include "pico/stdlib.h"
 #include "bsp/board.h"
 #include "tusb.h"
@@ -51,6 +33,17 @@ typedef struct frame_t {
 	uint8_t data[1518];
 	size_t size;
 } frame_t;
+
+typedef struct packet_t {
+	uint8_t data[1500];
+	size_t size;
+} packet_t;
+
+typedef struct proto_t {
+	uint8_t data[1480];
+	uint8_t proto_id;
+	size_t size;
+} proto_t;
 
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 
@@ -141,27 +134,86 @@ void tud_network_init_cb(void)
 	}
 }
 
-frame_t build_udp_frame(const uint8_t* dst_mac, const uint8_t* src_mac, const uint8_t* dst_ip, const uint8_t* src_ip) {
+//
+// Passing structs instead of pointers does make it perform a ton of reduntant copy operations
+//
+
+proto_t build_udp_proto(const uint16_t src_port, const uint16_t dst_port, const char* body) {
+	uint8_t src_port_u8[2] = { src_port >> 8, src_port };
+	uint8_t dst_port_u8[2] = { dst_port >> 8, dst_port };
+	size_t body_size = strlen(body);
+	uint16_t size_u16 = body_size + 8;
+
+	uint8_t size_u8[2] = { size_u16 >> 8, size_u16 };
+
+	proto_t proto = {
+		.data = {
+			src_port_u8[0], src_port_u8[1],
+			dst_port_u8[0], dst_port_u8[1],
+			size_u8[0], size_u8[1],
+			0, 0
+		},
+		.proto_id = 17,
+		.size = 8 + body_size
+	};
+
+	memcpy(proto.data + 8, body, body_size);
+
+	return proto;
+}
+
+packet_t build_ipv4_packet(const uint8_t* dst_ip, const uint8_t* src_ip, const proto_t proto) {
+	static uint16_t id_u16;
+	uint16_t size_u16 = 20 + proto.size;
+	uint8_t size_u8[2] = { size_u16 >> 8, size_u16 };
+	uint8_t id_u8[2] = { id_u16 >> 8, id_u16 };
+	uint8_t ttl = 128;
+
+	packet_t packet = {
+		.data = {
+			0x45, 0x00,
+			size_u8[0], size_u8[1],
+			id_u8[0], id_u8[1],
+			0x00, 0x00,
+			ttl, proto.proto_id,
+			0x00, 0x00,
+			src_ip[0], src_ip[1], src_ip[2], src_ip[3],
+			dst_ip[0], dst_ip[1], dst_ip[2], dst_ip[3],
+		},
+		.size = 20 + proto.size
+	};
+
+	uint32_t checksum_u32 = 0;
+
+	for (int i = 0; i < 10; i++)
+		checksum_u32 += (packet.data[2*i] << 8) + packet.data[2*i + 1];
+
+	if ((checksum_u32 & 0xFF00) < ((checksum_u32 + (checksum_u32 >> 16)) & 0xFF00))
+		checksum_u32 += 1;
+
+	uint16_t checksum_u16 = (checksum_u32 >> 16) + (uint16_t)checksum_u32;
+	uint8_t checksum_u8[2] = { ~checksum_u16 >> 8, ~checksum_u16 };
+
+	packet.data[10] = checksum_u8[0];
+	packet.data[11] = checksum_u8[1];
+
+	memcpy(packet.data + 20, proto.data, proto.size);
+
+	return packet;
+}
+
+frame_t build_frame(const uint8_t* dst_mac, const uint8_t* src_mac, const packet_t packet) {
 	frame_t frame = {
 		.data = {
-		dst_mac[0], dst_mac[1], dst_mac[2], dst_mac[3], dst_mac[4], dst_mac[5],
-		src_mac[0], src_mac[1], src_mac[2], src_mac[3], src_mac[4], src_mac[5],
-		0x08,
-		0x00, 0x45, 0x00, 0x00, 0x28,
-		0, 0,
-		0x00, 0x00, 0x80, 0x11,
-		0xE6, 0xC7,
-		src_ip[0], src_ip[1], src_ip[2], src_ip[3],
-		dst_ip[0], dst_ip[1], dst_ip[2], dst_ip[3],
-		0x63, 0xdd,
-		0x63, 0xdd,
-		0x00,
-		0x14,
-		0, 0,
-		0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21
+			dst_mac[0], dst_mac[1], dst_mac[2], dst_mac[3], dst_mac[4], dst_mac[5],
+			src_mac[0], src_mac[1], src_mac[2], src_mac[3], src_mac[4], src_mac[5],
+			0x08, 0x00
 		},
-		.size = 54
+		.size = 14 + packet.size
 	};
+
+	assert(frame.size < 1518);
+	memcpy(frame.data + 14, packet.data, packet.size);
 
 	return frame;
 }
@@ -177,7 +229,6 @@ int main(void)
 	// init device stack on configured roothub port
 	tud_init(BOARD_TUD_RHPORT);
 
-	frame_t udp = build_udp_frame(broarcast_mac_address, src_mac_address, dst_ip, src_ip);
 	uint32_t next_udp_message = 0;
 
 	while (1)
@@ -192,8 +243,16 @@ int main(void)
 
 		// Send UDP messages every 1000 ms
 		if (now >= next_udp_message) {
+			char buffer[256] = {0};
+
+			sprintf(buffer, "Uptime: %lu ms\n", now);
+
+			proto_t proto = build_udp_proto(25565, 25565, buffer);
+			packet_t packet = build_ipv4_packet(dst_ip, src_ip, proto);
+			frame_t frame = build_frame(broarcast_mac_address, src_mac_address, packet);
+
 			next_udp_message = now + 1000;
-			linkoutput_fn(&udp);
+			linkoutput_fn(&frame);
 		}
 	}
 
