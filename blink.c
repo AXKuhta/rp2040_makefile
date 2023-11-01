@@ -2,6 +2,7 @@
 #include "pico/stdlib.h"
 #include "pico/printf.h"
 #include "pico/bootrom.h"
+#include <stdlib.h>
 
 /*
 src/rp2_common/pico_standard_link/crt0.S:decl_isr_bkpt isr_invalid
@@ -48,4 +49,7 @@ int main() {
 		printf("bbb\n");
 		sleep_ms(250);
 	}
+
+	printf("some malloc: 0x%p\n", malloc(50));
+	printf("some malloc: 0x%p\n", malloc(1));
 }

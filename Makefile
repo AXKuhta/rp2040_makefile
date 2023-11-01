@@ -76,6 +76,8 @@ HEADER_DIRS = $(RP2040_HW_HEADER_DIRS) $(SDK_HEADER_DIRS) $(RP2_ASM_HEADER_DIRS)
 DEFINES = 	CFG_TUSB_MCU=OPT_MCU_RP2040 \
 			CFG_TUSB_OS=OPT_OS_PICO \
 			DEBUG=1 \
+			PICO_DIVIDER_CALL_IDIV0=0 \
+			PICO_DIVIDER_CALL_LDIV0=0 \
 			LIB_PICO_BIT_OPS=1 \
 			LIB_PICO_BIT_OPS_PICO=1 \
 			LIB_PICO_DIVIDER=1 \
@@ -139,7 +141,7 @@ MCUFLAGS = -mcpu=cortex-m0plus -mthumb
 CFLAGS = -Og -ggdb3 -Wall -Wextra $(MCUFLAGS) $(INCLUDE) $(DEFINES:%=-D"%")
 
 # -nostartfiles is important, without it a crash happens inside frame_dummy()
-LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map --specs=nosys.specs -nostartfiles
+LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map --specs=nosys.specs -nostartfiles -nostdlib
 
 CC = arm-none-eabi-gcc
 
