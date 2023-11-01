@@ -12,8 +12,7 @@ RP2_HEADER_DIRS = $(wildcard pico-sdk/src/rp2_common/*/include/)
 RP2_ASM_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.S)
 RP2_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.c)
 
-EXCLUDE = 	pico-sdk/src/rp2_common/pico_stdio_usb/% \
-			pico-sdk/src/rp2_common/pico_async_context/% \
+EXCLUDE = 	pico-sdk/src/rp2_common/pico_async_context/% \
 			pico-sdk/src/rp2_common/pico_btstack/% \
 			pico-sdk/src/rp2_common/pico_cyw43_driver/% \
 			pico-sdk/src/rp2_common/pico_cyw43_arch/% \
@@ -27,9 +26,44 @@ APP_SRCS = $(wildcard *.c)
 
 RP2_BOOT = pico-sdk/src/rp2_common/boot_stage2/bs2_default_padded_checksummed.S
 
+# TinyUSB
+# tinyusb/hw/bsp/family_support.cmake
+# tinyusb/hw/bsp/rp2040/family.cmake
+#
+
+
+TINYUSB_HEADER_DIRS_REL = src/ src/common/ hw/
+
+TINYUSB_COMMON_SRCS = src/tusb.c src/common/tusb_fifo.c
+TINYUSB_DEVICE_SRCS = 	src/portable/raspberrypi/rp2040/dcd_rp2040.c \
+						src/portable/raspberrypi/rp2040/rp2040_usb.c \
+						src/device/usbd.c \
+						src/device/usbd_control.c \
+						src/class/audio/audio_device.c \
+						src/class/cdc/cdc_device.c \
+						src/class/dfu/dfu_device.c \
+						src/class/dfu/dfu_rt_device.c \
+						src/class/hid/hid_device.c \
+						src/class/midi/midi_device.c \
+						src/class/msc/msc_device.c \
+						src/class/net/ecm_rndis_device.c \
+						src/class/net/ncm_device.c \
+						src/class/usbtmc/usbtmc_device.c \
+						src/class/vendor/vendor_device.c \
+						src/class/video/video_device.c
+
+TINYUSB_BSP_SRCS = hw/bsp/rp2040/family.c
+TINYUSB_SRCS_REL = $(TINYUSB_COMMON_SRCS) $(TINYUSB_DEVICE_SRCS) $(TINYUSB_BSP_SRCS)
+
+# Add tinyusb/ prefix to every folder and file + add USB enumeration fix from pico-sdk
+TINYUSB_HEADER_DIRS = $(TINYUSB_HEADER_DIRS_REL:%=tinyusb/%) pico-sdk/src/rp2_common/pico_fix/rp2040_usb_device_enumeration/include/
+TINYUSB_SRCS = $(TINYUSB_SRCS_REL:%=tinyusb/%) pico-sdk/src/rp2_common/pico_fix/rp2040_usb_device_enumeration/rp2040_usb_device_enumeration.c
+TINYUSB_OBJS = $(TINYUSB_SRCS:c=o)
+
 ASM_SRCS = $(filter-out $(EXCLUDE), $(RP2_ASM_SRCS))
 SRCS = $(filter-out $(EXCLUDE), $(RP2_SRCS) $(SDK_SRCS))
-OBJS = $(ASM_SRCS:S=o) $(RP2_BOOT:S=o) $(SRCS:c=o) $(APP_SRCS:c=o)
+OBJS = $(ASM_SRCS:S=o) $(RP2_BOOT:S=o) $(SRCS:c=o) $(APP_SRCS:c=o) $(TINYUSB_OBJS)
+
 
 HEADER_DIRS = $(RP2040_HW_HEADER_DIRS) $(SDK_HEADER_DIRS) $(RP2_ASM_HEADER_DIRS) $(RP2_HEADER_DIRS) $(TINYUSB_HEADER_DIRS)
 
@@ -63,7 +97,7 @@ DEFINES = 	CFG_TUSB_MCU=OPT_MCU_RP2040 \
 			LIB_PICO_STANDARD_LINK=1 \
 			LIB_PICO_STDIO=1 \
 			LIB_PICO_STDIO_UART=1 \
-			LIB_PICO_STDIO_USB=0 \
+			LIB_PICO_STDIO_USB=1 \
 			LIB_PICO_STDLIB=1 \
 			LIB_PICO_SYNC=1 \
 			LIB_PICO_SYNC_CRITICAL_SECTION=1 \
