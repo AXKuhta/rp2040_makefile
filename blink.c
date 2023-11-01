@@ -12,6 +12,13 @@ src/rp2_common/pico_standard_link/crt0.S:decl_isr_bkpt isr_pendsv
 src/rp2_common/pico_standard_link/crt0.S:decl_isr_bkpt isr_systick
 */
 
+size_t __wrap_strlen(const char* str) {
+	for (size_t i = 0; 1; i++) {
+		if (str[i] == 0)
+			return i;
+	}
+}
+
 void isr_hardfault(void) {
 	_write(1, "HARDFAULT\n", 10);
 	reset_usb_boot(1 << 25, 0);
@@ -33,14 +40,12 @@ int main() {
 		}
 	}
 
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 10; i++) {
 		gpio_put(LED_PIN, 0);
-		_write(1, "aaa\n", 4);
+		printf("aaa\n");
 		sleep_ms(250);
 		gpio_put(LED_PIN, 1);
-		_write(1, "bbb\n", 4);
+		printf("bbb\n");
 		sleep_ms(250);
 	}
-
-	printf("aa\n");
 }

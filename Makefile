@@ -130,7 +130,7 @@ LDWRAP_PICO_MALLOC = malloc calloc realloc free
 LDWRAP_PICO_MEM_OPS = memcpy memset __aeabi_memcpy __aeabi_memset __aeabi_memcpy4 __aeabi_memset4 __aeabi_memcpy8 __aeabi_memset8
 LDWRAP_PICO_PRINTF = sprintf snprintf vsnprintf
 LDWRAP_PICO_STDIO = printf vprintf puts putchar getchar
-LDWRAP = $(LDWRAP_PICO_BITOPS) $(LDWRAP_PICO_DIVIDER) $(LDWRAP_PICO_INT64) $(LDWRAP_PICO_FLOAT) $(LDWRAP_PICO_DOUBLE) $(LDWRAP_PICO_MALLOC) $(LDWRAP_PICO_MEM_OPS) $(LDWRAP_PICO_PRINTF) $(LDWRAP_PICO_STDIO)
+LDWRAP = $(LDWRAP_PICO_BITOPS) $(LDWRAP_PICO_DIVIDER) $(LDWRAP_PICO_INT64) $(LDWRAP_PICO_FLOAT) $(LDWRAP_PICO_DOUBLE) $(LDWRAP_PICO_MALLOC) $(LDWRAP_PICO_MEM_OPS) $(LDWRAP_PICO_PRINTF) $(LDWRAP_PICO_STDIO) strlen
 
 LDSCRIPT = pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld
 
