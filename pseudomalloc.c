@@ -6,6 +6,21 @@
 // This file stubplements malloc(), calloc(), free() and realloc() to experiment with compilation of pico-sdk with -nostdlib
 // see also pico-sdk/src/rp2_common/pico_malloc/pico_malloc.c
 
+extern char end;
+
+// Must be called before any memory allocations
+void init_memory_manager() {
+	size_t heap_size = 0x20000000 + 256*1024 - (size_t)&end;
+
+	// FreeRTOS-Kernel/portable/MemMang/heap_5.c
+	HeapRegion_t xHeapRegions[] = {
+		{ ( uint8_t * ) &end, heap_size },
+		{ NULL, 0 }
+	};
+
+	vPortDefineHeapRegions(xHeapRegions);
+}
+
 void* malloc(size_t size) {
 	return pvPortMalloc(size);
 }

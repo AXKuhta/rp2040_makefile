@@ -65,7 +65,7 @@ TINYUSB_SRCS = $(TINYUSB_SRCS_REL:%=tinyusb/%) pico-sdk/src/rp2_common/pico_fix/
 FREERTOS_HEADER_DIRS = FreeRTOS-Kernel/include/ FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040/include
 FREERTOS_SRCS = 	$(wildcard FreeRTOS-Kernel/*.c) \
 					$(wildcard FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040/*.c) \
-					FreeRTOS-Kernel/portable/MemMang/heap_4.c
+					FreeRTOS-Kernel/portable/MemMang/heap_5.c
 
 ASM_SRCS = $(filter-out $(EXCLUDE), $(RP2_ASM_SRCS))
 SRCS = $(filter-out $(EXCLUDE), $(RP2_SRCS) $(SDK_SRCS))

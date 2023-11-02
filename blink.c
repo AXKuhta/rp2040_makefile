@@ -6,6 +6,7 @@
 #include "pico/bootrom.h"
 
 #include "FreeRTOS.h"
+#include "pseudomalloc.h"
 
 /*
 src/rp2_common/pico_standard_link/crt0.S:decl_isr_bkpt isr_invalid
@@ -32,6 +33,9 @@ int main() {
 	const uint LED_PIN = 25;
 	gpio_init(LED_PIN);
 	gpio_set_dir(LED_PIN, GPIO_OUT);
+	gpio_put(LED_PIN, 1);
+
+	init_memory_manager();
 
 	bool status = stdio_init_all();
 
