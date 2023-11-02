@@ -9,6 +9,7 @@
 #include "task.h"
 
 #include "pseudomalloc.h"
+#include "network.h"
 
 /*
 src/rp2_common/pico_standard_link/crt0.S:decl_isr_bkpt isr_invalid
@@ -31,34 +32,18 @@ void isr_hardfault(void) {
 	reset_usb_boot(1 << 25, 0);
 }
 
-const uint LED_PIN = 25;
+static const uint LED_PIN = 25;
 
 void init_task(void* params) {
-	bool status = stdio_init_all();
+	xTaskCreate( network_task, "net", configMINIMAL_STACK_SIZE*16, NULL, 1, NULL);
 
-	if (!status) {
-		while (true) {
-			gpio_put(LED_PIN, 1);
-			sleep_ms(50);
-			gpio_put(LED_PIN, 0);
-			sleep_ms(50);
-		}
+	(void)params;
+
+	while (1) {
+		vTaskDelay(0);
 	}
 
-	for (int i = 0; i < 10; i++) {
-		gpio_put(LED_PIN, 0);
-		printf("aaa\n");
-		sleep_ms(250);
-		gpio_put(LED_PIN, 1);
-		printf("bbb\n");
-		sleep_ms(250);
-	}
-
-	printf("some malloc: 0x%p\n", malloc(50));
-	printf("some malloc: 0x%p\n", malloc(1));
-
-	printf("Graceful reset to USB flash mode\n");
-	reset_usb_boot(1 << 25, 0);
+	//reset_usb_boot(1 << 25, 0);
 }
 
 int main() {

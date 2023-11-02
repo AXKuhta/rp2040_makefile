@@ -20,7 +20,8 @@ EXCLUDE = 	pico-sdk/src/rp2_common/pico_async_context/% \
 			pico-sdk/src/rp2_common/boot_stage2/% \
 			pico-sdk/src/rp2_common/pico_double/%_none.S \
 			pico-sdk/src/rp2_common/pico_float/%_none.S \
-			pico-sdk/src/rp2_common/pico_printf/printf_none.S
+			pico-sdk/src/rp2_common/pico_printf/printf_none.S \
+			pico-sdk/src/rp2_common/pico_stdio_usb/%
 
 APP_SRCS = $(wildcard *.c)
 
@@ -32,7 +33,10 @@ RP2_BOOT = pico-sdk/src/rp2_common/boot_stage2/bs2_default_padded_checksummed.S
 #
 
 
-TINYUSB_HEADER_DIRS_REL = src/ src/common/ hw/
+TINYUSB_HEADER_DIRS_REL = 	src/ \
+							src/common/ \
+							hw/ \
+							lib/networking/
 
 TINYUSB_COMMON_SRCS = src/tusb.c src/common/tusb_fifo.c
 TINYUSB_DEVICE_SRCS = 	src/portable/raspberrypi/rp2040/dcd_rp2040.c \
@@ -53,7 +57,9 @@ TINYUSB_DEVICE_SRCS = 	src/portable/raspberrypi/rp2040/dcd_rp2040.c \
 						src/class/video/video_device.c
 
 TINYUSB_BSP_SRCS = hw/bsp/rp2040/family.c
-TINYUSB_SRCS_REL = $(TINYUSB_COMMON_SRCS) $(TINYUSB_DEVICE_SRCS) $(TINYUSB_BSP_SRCS)
+TINYUSB_NETWORKING_SRCS = lib/networking/rndis_reports.c
+
+TINYUSB_SRCS_REL = $(TINYUSB_COMMON_SRCS) $(TINYUSB_DEVICE_SRCS) $(TINYUSB_BSP_SRCS) $(TINYUSB_NETWORKING_SRCS)
 
 # Add tinyusb/ prefix to every folder and file + add USB enumeration fix from pico-sdk
 TINYUSB_HEADER_DIRS = $(TINYUSB_HEADER_DIRS_REL:%=tinyusb/%) pico-sdk/src/rp2_common/pico_fix/rp2040_usb_device_enumeration/include/
@@ -76,11 +82,12 @@ OBJS = 	$(ASM_SRCS:S=o) \
 		$(TINYUSB_SRCS:c=o) \
 		$(FREERTOS_SRCS:c=o)
 
-
+# Must exclude pico-sdk/src/rp2_common/pico_stdio_usb/include/tusb_config.h
+# find . | grep tusb_config
 HEADER_DIRS = 	$(RP2040_HW_HEADER_DIRS) \
 				$(SDK_HEADER_DIRS) \
 				$(RP2_ASM_HEADER_DIRS) \
-				$(RP2_HEADER_DIRS) \
+				$(filter-out pico-sdk/src/rp2_common/pico_stdio_usb/include/, $(RP2_HEADER_DIRS)) \
 				$(TINYUSB_HEADER_DIRS) \
 				$(FREERTOS_HEADER_DIRS) \
 				include/
@@ -117,7 +124,7 @@ DEFINES = 	CFG_TUSB_MCU=OPT_MCU_RP2040 \
 			LIB_PICO_STANDARD_LINK=1 \
 			LIB_PICO_STDIO=1 \
 			LIB_PICO_STDIO_UART=1 \
-			LIB_PICO_STDIO_USB=1 \
+			LIB_PICO_STDIO_USB=0 \
 			LIB_PICO_STDLIB=1 \
 			LIB_PICO_SYNC=1 \
 			LIB_PICO_SYNC_CRITICAL_SECTION=1 \
