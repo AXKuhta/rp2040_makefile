@@ -58,14 +58,32 @@ TINYUSB_SRCS_REL = $(TINYUSB_COMMON_SRCS) $(TINYUSB_DEVICE_SRCS) $(TINYUSB_BSP_S
 # Add tinyusb/ prefix to every folder and file + add USB enumeration fix from pico-sdk
 TINYUSB_HEADER_DIRS = $(TINYUSB_HEADER_DIRS_REL:%=tinyusb/%) pico-sdk/src/rp2_common/pico_fix/rp2040_usb_device_enumeration/include/
 TINYUSB_SRCS = $(TINYUSB_SRCS_REL:%=tinyusb/%) pico-sdk/src/rp2_common/pico_fix/rp2040_usb_device_enumeration/rp2040_usb_device_enumeration.c
-TINYUSB_OBJS = $(TINYUSB_SRCS:c=o)
+
+# FreeRTOS
+#
+
+FREERTOS_HEADER_DIRS = FreeRTOS-Kernel/include/ FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040/include
+FREERTOS_SRCS = 	$(wildcard FreeRTOS-Kernel/*.c) \
+					$(wildcard FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040/*.c) \
+					FreeRTOS-Kernel/portable/MemMang/heap_4.c
 
 ASM_SRCS = $(filter-out $(EXCLUDE), $(RP2_ASM_SRCS))
 SRCS = $(filter-out $(EXCLUDE), $(RP2_SRCS) $(SDK_SRCS))
-OBJS = $(ASM_SRCS:S=o) $(RP2_BOOT:S=o) $(SRCS:c=o) $(APP_SRCS:c=o) $(TINYUSB_OBJS)
+OBJS = 	$(ASM_SRCS:S=o) \
+		$(RP2_BOOT:S=o) \
+		$(SRCS:c=o) \
+		$(APP_SRCS:c=o) \
+		$(TINYUSB_SRCS:c=o) \
+		$(FREERTOS_SRCS:c=o)
 
 
-HEADER_DIRS = $(RP2040_HW_HEADER_DIRS) $(SDK_HEADER_DIRS) $(RP2_ASM_HEADER_DIRS) $(RP2_HEADER_DIRS) $(TINYUSB_HEADER_DIRS)
+HEADER_DIRS = 	$(RP2040_HW_HEADER_DIRS) \
+				$(SDK_HEADER_DIRS) \
+				$(RP2_ASM_HEADER_DIRS) \
+				$(RP2_HEADER_DIRS) \
+				$(TINYUSB_HEADER_DIRS) \
+				$(FREERTOS_HEADER_DIRS) \
+				include/
 
 ################################################################################
 # COMPILER FLAGS

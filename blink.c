@@ -1,8 +1,11 @@
 
+#include <stdlib.h>
+
 #include "pico/stdlib.h"
 #include "pico/printf.h"
 #include "pico/bootrom.h"
-#include <stdlib.h>
+
+#include "FreeRTOS.h"
 
 /*
 src/rp2_common/pico_standard_link/crt0.S:decl_isr_bkpt isr_invalid
