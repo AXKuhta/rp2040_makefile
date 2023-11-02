@@ -6,6 +6,8 @@
 #include "pico/bootrom.h"
 
 #include "FreeRTOS.h"
+#include "task.h"
+
 #include "pseudomalloc.h"
 
 /*
@@ -29,14 +31,9 @@ void isr_hardfault(void) {
 	reset_usb_boot(1 << 25, 0);
 }
 
-int main() {
-	const uint LED_PIN = 25;
-	gpio_init(LED_PIN);
-	gpio_set_dir(LED_PIN, GPIO_OUT);
-	gpio_put(LED_PIN, 1);
+const uint LED_PIN = 25;
 
-	init_memory_manager();
-
+void init_task(void* params) {
 	bool status = stdio_init_all();
 
 	if (!status) {
@@ -59,4 +56,18 @@ int main() {
 
 	printf("some malloc: 0x%p\n", malloc(50));
 	printf("some malloc: 0x%p\n", malloc(1));
+
+	printf("Graceful reset to USB flash mode\n");
+	reset_usb_boot(1 << 25, 0);
+}
+
+int main() {
+	gpio_init(LED_PIN);
+	gpio_set_dir(LED_PIN, GPIO_OUT);
+	gpio_put(LED_PIN, 1);
+
+	init_memory_manager();
+
+	xTaskCreate( init_task, "init", configMINIMAL_STACK_SIZE*8, NULL, 1, NULL);
+	vTaskStartScheduler();
 }
