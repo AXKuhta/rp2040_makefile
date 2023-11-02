@@ -108,7 +108,7 @@
 #define INCLUDE_xTaskGetHandle                  0
 #define INCLUDE_xTaskResumeFromISR              1
 
-#define configTOTAL_HEAP_SIZE 256*1024 // Would really like to define this as 0 (because we don't know the value at compile time), but this trips an out of memory check in heap_4.c
+#define configTOTAL_HEAP_SIZE 128*1024 // Would really like to define this as 0 (because we don't know the value at compile time), but this trips an out of memory check in heap_4.c
 #define ucHeap end
 
 /* A header file that defines trace macro can be included here. */
