@@ -44,3 +44,29 @@ void* realloc(void *ptr, size_t size) {
 	(void)size;
 	while (1) {}
 }
+
+int memcmp(const void* s1, const void* s2, size_t n) {
+	const unsigned char* p1 = s1, * p2 = s2;
+
+	while (n--) {
+		if (*p1 != *p2)
+			return *p1 - *p2;
+
+		p1++;
+		p2++;
+	}
+
+	return 0;
+}
+
+void* memmove(void* dest, const void* src, size_t n) {
+	unsigned char* pd = dest;
+	const unsigned char* ps = src;
+	if (ps < pd)
+		for (pd += n, ps +=n; n--;)
+			*--pd = *--ps;
+	else
+		while (n--)
+			*pd++ = *ps++;
+	return dest;
+}

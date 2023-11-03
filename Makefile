@@ -73,6 +73,15 @@ FREERTOS_SRCS = 	$(wildcard FreeRTOS-Kernel/*.c) \
 					$(wildcard FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040/*.c) \
 					FreeRTOS-Kernel/portable/MemMang/heap_5.c
 
+# FreeRTOS-Plus-TCP
+#
+
+FREERTOS_PLUS_TCP_HEADER_DIRS = 	FreeRTOS-Plus-TCP/source/include/ \
+									FreeRTOS-Plus-TCP/source/portable/Compiler/GCC/
+
+FREERTOS_PLUS_TCP_SRCS = 	$(wildcard FreeRTOS-Plus-TCP/source/*.c) \
+							FreeRTOS-Plus-TCP/source/portable/BufferManagement/BufferAllocation_2.c
+
 ASM_SRCS = $(filter-out $(EXCLUDE), $(RP2_ASM_SRCS))
 SRCS = $(filter-out $(EXCLUDE), $(RP2_SRCS) $(SDK_SRCS))
 OBJS = 	$(ASM_SRCS:S=o) \
@@ -80,7 +89,8 @@ OBJS = 	$(ASM_SRCS:S=o) \
 		$(SRCS:c=o) \
 		$(APP_SRCS:c=o) \
 		$(TINYUSB_SRCS:c=o) \
-		$(FREERTOS_SRCS:c=o)
+		$(FREERTOS_SRCS:c=o) \
+		$(FREERTOS_PLUS_TCP_SRCS:c=o)
 
 # Must exclude pico-sdk/src/rp2_common/pico_stdio_usb/include/tusb_config.h
 # find . | grep tusb_config
@@ -90,6 +100,7 @@ HEADER_DIRS = 	$(RP2040_HW_HEADER_DIRS) \
 				$(filter-out pico-sdk/src/rp2_common/pico_stdio_usb/include/, $(RP2_HEADER_DIRS)) \
 				$(TINYUSB_HEADER_DIRS) \
 				$(FREERTOS_HEADER_DIRS) \
+				$(FREERTOS_PLUS_TCP_HEADER_DIRS) \
 				include/
 
 ################################################################################

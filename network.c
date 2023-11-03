@@ -5,6 +5,7 @@
 #include "crude_ip.h"
 
 #include "FreeRTOS.h"
+#include "FreeRTOS_IP.h"
 #include "task.h"
 
 static const uint LED_PIN = PICO_DEFAULT_LED_PIN;
@@ -23,6 +24,10 @@ const uint8_t broarcast_mac_address[6] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 // That's what Windows uses when there's no DHCP
 const uint8_t src_ip[4] = {169, 254, 0, 1};
 const uint8_t dst_ip[4] = {169, 254, 255, 255};
+
+const uint8_t Mask[4] = {255, 255, 255, 0};
+const uint8_t Gateway[4] = {169, 254, 0, 1};
+const uint8_t DNSServer[4] = {1, 1, 1, 1};
 
 frame_t received_frame = {0};
 
@@ -79,12 +84,27 @@ static bool linkoutput_fn(frame_t* frame) {
 	}
 }
 
+// Build a frame and send
+bool linkoutput_fn_v2(const unsigned char* eth_frame, size_t size) {
+	frame_t frame = {
+		.size = size
+	};
+
+	memcpy(frame.data, eth_frame, size);
+
+	return linkoutput_fn(&frame);
+}
+
 void network_task() {
 	// initialize TinyUSB
 	board_init();
 
 	// init device stack on configured roothub port
 	tud_init(BOARD_TUD_RHPORT);
+
+	FreeRTOS_IPInit(src_ip, Mask, Gateway, DNSServer, src_mac_address);
+
+	vNetworkNotifyIFUp();
 
 	while (1) {
 		uint32_t now = board_millis();
@@ -99,6 +119,7 @@ void network_task() {
 			tud_network_recv_renew();
 		}
 
+		/*
 		static uint32_t next_udp_message;
 
 		// Send UDP messages every 1000 ms
@@ -114,7 +135,25 @@ void network_task() {
 			next_udp_message = now + 1000;
 			linkoutput_fn(&frame);
 		}
+		*/
 
 		vTaskDelay(0);
 	}
+}
+
+uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress, uint16_t usSourcePort, uint32_t ulDestinationAddress, uint16_t usDestinationPort ) {
+	(void) ulSourceAddress;
+	(void) usSourcePort;
+	(void) ulDestinationAddress;
+	(void) usDestinationPort;
+	return board_millis();
+}
+
+BaseType_t xApplicationGetRandomNumber( uint32_t *pulValue ) {
+	*pulValue = board_millis();
+	return pdPASS;
+}
+
+void vApplicationIPNetworkEventHook( eIPCallbackEvent_t eNetworkEvent ) {
+	(void) eNetworkEvent;
 }
