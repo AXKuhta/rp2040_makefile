@@ -29,43 +29,8 @@ const uint8_t Mask[4] = {255, 255, 255, 0};
 const uint8_t Gateway[4] = {169, 254, 0, 1};
 const uint8_t DNSServer[4] = {1, 1, 1, 1};
 
-frame_t received_frame = {0};
-
 uint32_t last_rx = 0;
 uint32_t last_tx = 0;
-
-// Always accept incoming frames and return true
-// Should return false here if overrun
-bool tud_network_recv_cb(const uint8_t *src, uint16_t size) {
-	assert(size <= 1518);
-
-	memcpy(received_frame.data, src, size);
-	received_frame.size = size;
-
-	last_rx = board_millis();
-
-	return true;
-}
-
-// dst = tinyusb transmit queue pointer
-// ref = packet structure
-uint16_t tud_network_xmit_cb(uint8_t *dst, void *ref, uint16_t arg) {
-	frame_t* frame = (frame_t*)ref;
-	(void)arg;
-
-	memcpy(dst, frame->data, frame->size);
-
-	last_tx = board_millis();
-
-	return frame->size;
-}
-
-// if the network is re-initializing and we have a leftover packet, we must do a cleanup
-void tud_network_init_cb(void) {
-	if (received_frame.size > 0) {
-		received_frame.size = 0;
-	}
-}
 
 static bool linkoutput_fn(frame_t* frame) {
 	for (;;) {
@@ -112,12 +77,6 @@ void network_task() {
 
 		// Blink LED on RX/TX activity
 		gpio_put(LED_PIN, last_rx + 50 > now || last_tx + 50 > now);
-
-		// Handle any packet received by tud_network_recv_cb()
-		if (received_frame.size > 0) {
-			received_frame.size = 0;
-			tud_network_recv_renew();
-		}
 
 		/*
 		static uint32_t next_udp_message;

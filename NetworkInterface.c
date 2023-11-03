@@ -33,6 +33,8 @@
 
 #include "tusb.h"
 #include "network.h"
+#include "crude_ip.h" // frame_t
+#include "bsp/board.h" // board_millis()
 
 enum if_state_t
 {
@@ -184,15 +186,18 @@ void vNetworkNotifyIFUp()
 {
     xInterfaceState = INTERFACE_UP;
 }
-#if 0
-esp_err_t wlanif_input( void * netif,
-                        void * buffer,
-                        uint16_t len,
-                        void * eb )
-{
+
+extern uint32_t last_rx;
+extern uint32_t last_tx;
+
+// Always accept incoming frames and return true
+// Should return false here if overrun
+bool tud_network_recv_cb(const uint8_t *src, uint16_t size) {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
     const TickType_t xDescriptorWaitTime = pdMS_TO_TICKS( 250 );
+
+	last_rx = board_millis();
 
     #if ( ipconfigHAS_PRINTF != 0 )
         {
@@ -200,41 +205,48 @@ esp_err_t wlanif_input( void * netif,
         }
     #endif /* ( ipconfigHAS_PRINTF != 0 ) */
 
-    if( eConsiderFrameForProcessing( buffer ) != eProcessBuffer )
-    {
-        ESP_LOGD( TAG, "Dropping packet" );
-        esp_wifi_internal_free_rx_buffer( eb );
-        return ESP_OK;
-    }
-
-    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( len, xDescriptorWaitTime );
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( size, xDescriptorWaitTime );
 
     if( pxNetworkBuffer != NULL )
     {
         /* Set the packet size, in case a larger buffer was returned. */
-        pxNetworkBuffer->xDataLength = len;
+        pxNetworkBuffer->xDataLength = size;
         pxNetworkBuffer->pxInterface = pxMyInterface;
-        pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, pcBuffer );
+        pxNetworkBuffer->pxEndPoint = FreeRTOS_MatchingEndpoint( pxMyInterface, src );
 
         /* Copy the packet data. */
-        memcpy( pxNetworkBuffer->pucEthernetBuffer, buffer, len );
+        memcpy( pxNetworkBuffer->pucEthernetBuffer, src, size );
         xRxEvent.pvData = ( void * ) pxNetworkBuffer;
 
         if( xSendEventStructToIPTask( &xRxEvent, xDescriptorWaitTime ) == pdFAIL )
         {
-            ESP_LOGE( TAG, "Failed to enqueue packet to network stack %p, len %d", buffer, len );
             vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
-            return ESP_FAIL;
+            return false;
         }
 
-        esp_wifi_internal_free_rx_buffer( eb );
-        return ESP_OK;
+        tud_network_recv_renew();
+
+        return true;
     }
     else
     {
-        ESP_LOGE( TAG, "Failed to get buffer descriptor" );
-        return ESP_FAIL;
+        return false;
     }
 }
-#endif
 
+// dst = tinyusb transmit queue pointer
+// ref = packet structure
+uint16_t tud_network_xmit_cb(uint8_t *dst, void *ref, uint16_t arg) {
+	frame_t* frame = (frame_t*)ref;
+	(void)arg;
+
+	memcpy(dst, frame->data, frame->size);
+
+	last_tx = board_millis();
+
+	return frame->size;
+}
+
+// the network is re-initializing
+void tud_network_init_cb(void) {
+}
