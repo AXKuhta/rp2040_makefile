@@ -101,18 +101,8 @@ NetworkInterface_t * pxRNDIS_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
 
 static BaseType_t xRNDIS_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
-    static BaseType_t xMACAdrInitialized = pdFALSE;
-    uint8_t ucMACAddress[ ipMAC_ADDRESS_LENGTH_BYTES ];
-
     if( xInterfaceState == INTERFACE_UP )
     {
-        if( xMACAdrInitialized == pdFALSE )
-        {
-            //esp_wifi_get_mac( ESP_IF_WIFI_STA, ucMACAddress );
-            FreeRTOS_UpdateMACAddress( ucMACAddress );
-            xMACAdrInitialized = pdTRUE;
-        }
-
         return pdTRUE;
     }
 
