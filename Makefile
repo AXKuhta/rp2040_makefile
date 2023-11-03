@@ -174,7 +174,7 @@ all: firmware.uf2
 
 firmware.uf2: firmware.elf
 	@echo " [ELF2UF2] firmware.uf2"
-	@./elf2uf2 firmware.elf firmware.uf2
+	@./elf2uf2.elf firmware.elf firmware.uf2
 
 firmware.elf: $(OBJS)
 	@echo " [LD] firmware.elf"

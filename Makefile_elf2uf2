@@ -2,6 +2,6 @@ ELF2UF2_HEADER_DIRS = pico-sdk/src/common/boot_uf2/include/ .
 ELF2UF2_SRCS = pico-sdk/tools/elf2uf2/main.cpp
 ELF2UF2_FLAGS = -std=c++14 -O2
 
-elf2uf2: $(ELF2UF2_SRCS)
+elf2uf2.elf: $(ELF2UF2_SRCS)
 	@echo " [HOSTCXX]" $<
 	@g++ $(ELF2UF2_FLAGS) $(ELF2UF2_HEADER_DIRS:%=-I"%") -o $@ $<
