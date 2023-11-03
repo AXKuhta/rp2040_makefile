@@ -45,29 +45,11 @@ void network_task() {
 
 	while (1) {
 		uint32_t now = board_millis();
-		tud_task();
 
 		// Blink LED on RX/TX activity
 		gpio_put(LED_PIN, last_rx + 50 > now || last_tx + 50 > now);
 
-		/*
-		static uint32_t next_udp_message;
-
-		// Send UDP messages every 1000 ms
-		if (now >= next_udp_message) {
-			char buffer[256] = {0};
-
-			sprintf(buffer, "Uptime: %lu ms\n", now);
-
-			proto_t proto = build_udp_proto(25565, 25565, buffer);
-			packet_t packet = build_ipv4_packet(dst_ip, src_ip, proto);
-			frame_t frame = build_frame(broarcast_mac_address, src_mac_address, packet);
-
-			next_udp_message = now + 1000;
-			linkoutput_fn(&frame);
-		}
-		*/
-
+		tud_task();
 		vTaskDelay(0);
 	}
 }
