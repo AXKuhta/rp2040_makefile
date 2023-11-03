@@ -33,7 +33,6 @@
 
 #include "tusb.h"
 #include "network.h"
-#include "crude_ip.h" // frame_t
 #include "bsp/board.h" // board_millis()
 
 enum if_state_t
@@ -132,6 +131,23 @@ static BaseType_t xRNDIS_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface 
     return xResult;
 }
 
+static bool linkoutput_fn(const uint8_t *src, uint16_t size) {
+	while (1) {
+		// if TinyUSB isn't ready, we must signal back to lwip that there is nothing we can do
+		if (!tud_ready())
+			return false;
+
+		// if the network driver can accept another packet, we make it happen
+		if (tud_network_can_xmit(size)) {
+			tud_network_xmit(src, size);
+			return true;
+		}
+
+		// transfer execution to TinyUSB in the hopes that it will finish transmitting the prior packet
+		tud_task();
+	}
+}
+
 static BaseType_t xRNDIS_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInterface,
                                                      NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                      BaseType_t xReleaseAfterSend )
@@ -151,7 +167,7 @@ static BaseType_t xRNDIS_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInte
     }
     else
     {
-        ret = linkoutput_fn_v2(pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength) ? pdTRUE : pdFALSE;
+        ret = linkoutput_fn(pxNetworkBuffer->pucEthernetBuffer, pxNetworkBuffer->xDataLength) ? pdTRUE : pdFALSE;
     }
 
     #if ( ipconfigHAS_PRINTF != 0 )
@@ -235,16 +251,14 @@ bool tud_network_recv_cb(const uint8_t *src, uint16_t size) {
 }
 
 // dst = tinyusb transmit queue pointer
-// ref = packet structure
-uint16_t tud_network_xmit_cb(uint8_t *dst, void *ref, uint16_t arg) {
-	frame_t* frame = (frame_t*)ref;
-	(void)arg;
-
-	memcpy(dst, frame->data, frame->size);
+// src = packet data
+// size = packet size
+uint16_t tud_network_xmit_cb(uint8_t *dst, void *src, uint16_t size) {
+	memcpy(dst, src, size);
 
 	last_tx = board_millis();
 
-	return frame->size;
+	return size;
 }
 
 // the network is re-initializing

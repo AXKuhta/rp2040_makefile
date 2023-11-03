@@ -32,34 +32,6 @@ const uint8_t DNSServer[4] = {1, 1, 1, 1};
 uint32_t last_rx = 0;
 uint32_t last_tx = 0;
 
-static bool linkoutput_fn(frame_t* frame) {
-	for (;;) {
-		// if TinyUSB isn't ready, we must signal back to lwip that there is nothing we can do
-		if (!tud_ready())
-			return false;
-
-		// if the network driver can accept another packet, we make it happen
-		if (tud_network_can_xmit(frame->size)) {
-			tud_network_xmit(frame, 0 /* unused for this example */);
-			return true;
-		}
-
-		// transfer execution to TinyUSB in the hopes that it will finish transmitting the prior packet
-		tud_task();
-	}
-}
-
-// Build a frame and send
-bool linkoutput_fn_v2(const unsigned char* eth_frame, size_t size) {
-	frame_t frame = {
-		.size = size
-	};
-
-	memcpy(frame.data, eth_frame, size);
-
-	return linkoutput_fn(&frame);
-}
-
 void network_task() {
 	// initialize TinyUSB
 	board_init();
