@@ -2,7 +2,6 @@
 #include "pico/stdlib.h"
 #include "bsp/board.h"
 #include "tusb.h"
-#include "crude_ip.h"
 
 #include "FreeRTOS.h"
 #include "FreeRTOS_IP.h"
