@@ -39,7 +39,6 @@ enum if_state_t
     INTERFACE_UP,
 };
 
-static const char * TAG = "NetInterface";
 volatile static uint32_t xInterfaceState = INTERFACE_DOWN;
 
 static NetworkInterface_t * pxMyInterface;
@@ -142,7 +141,6 @@ static BaseType_t xRNDIS_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInte
 {
     if( ( pxNetworkBuffer == NULL ) || ( pxNetworkBuffer->pucEthernetBuffer == NULL ) || ( pxNetworkBuffer->xDataLength == 0 ) )
     {
-        //ESP_LOGE( TAG, "Invalid params" );
         return pdFALSE;
     }
 
@@ -150,7 +148,6 @@ static BaseType_t xRNDIS_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInte
 
     if( xInterfaceState == INTERFACE_DOWN )
     {
-        //ESP_LOGD( TAG, "Interface down" );
         ret = pdFALSE;
     }
     else
