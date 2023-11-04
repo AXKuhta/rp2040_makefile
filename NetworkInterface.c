@@ -32,8 +32,6 @@
 #include "NetworkInterface.h"
 
 #include "tusb.h"
-#include "network.h"
-#include "bsp/board.h" // board_millis()
 
 enum if_state_t
 {
@@ -193,17 +191,12 @@ void vNetworkNotifyIFUp()
     xInterfaceState = INTERFACE_UP;
 }
 
-extern uint32_t last_rx;
-extern uint32_t last_tx;
-
 // Always accept incoming frames and return true
 // Should return false here if overrun
 bool tud_network_recv_cb(const uint8_t *src, uint16_t size) {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
     IPStackEvent_t xRxEvent = { eNetworkRxEvent, NULL };
     const TickType_t xDescriptorWaitTime = pdMS_TO_TICKS( 250 );
-
-	last_rx = board_millis();
 
     #if ( ipconfigHAS_PRINTF != 0 )
         {
@@ -245,8 +238,6 @@ bool tud_network_recv_cb(const uint8_t *src, uint16_t size) {
 // size = packet size
 uint16_t tud_network_xmit_cb(uint8_t *dst, void *src, uint16_t size) {
 	memcpy(dst, src, size);
-
-	last_tx = board_millis();
 
 	return size;
 }

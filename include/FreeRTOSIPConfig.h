@@ -315,4 +315,10 @@ extern void vLoggingPrintf( const char * pcFormatString,
     #define ipconfigBUFFER_PADDING    ( 14U )
 #endif /* INTPTR_MAX == INT64_MAX */
 
+void network_rx_activity(size_t size);
+void network_tx_activity(size_t size);
+
+#define iptraceNETWORK_INTERFACE_INPUT( uxDataLength, pucEthernetBuffer ) network_rx_activity(uxDataLength)
+#define iptraceNETWORK_INTERFACE_OUTPUT( uxDataLength, pucEthernetBuffer ) network_tx_activity(uxDataLength)
+
 #endif /* FREERTOS_IP_CONFIG_H */

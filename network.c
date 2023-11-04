@@ -8,6 +8,27 @@
 #include "FreeRTOS_IP.h"
 #include "task.h"
 
+// Performance counters and activity indicator
+size_t total_frames_rx = 0;
+size_t total_frames_tx = 0;
+size_t total_bytes_rx = 0;
+size_t total_bytes_tx = 0;
+
+uint32_t last_rx = 0;
+uint32_t last_tx = 0;
+
+void network_rx_activity(size_t size) {
+	last_rx = board_millis();
+	total_bytes_tx += size;
+	total_frames_tx++;
+}
+
+void network_tx_activity(size_t size) {
+	last_tx = board_millis();
+	total_bytes_rx += size;
+	total_frames_rx++;
+}
+
 static const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 
 // This is the MAC that the computer gets
@@ -28,9 +49,6 @@ const uint8_t dst_ip[4] = {169, 254, 255, 255};
 const uint8_t Mask[4] = {255, 255, 255, 0};
 const uint8_t Gateway[4] = {169, 254, 0, 1};
 const uint8_t DNSServer[4] = {1, 1, 1, 1};
-
-uint32_t last_rx = 0;
-uint32_t last_tx = 0;
 
 void network_task() {
 	// initialize TinyUSB
