@@ -59,8 +59,6 @@ void network_task() {
 
 	FreeRTOS_IPInit(src_ip, Mask, Gateway, DNSServer, src_mac_address);
 
-	vNetworkNotifyIFUp();
-
 	while (1) {
 		uint32_t now = board_millis();
 

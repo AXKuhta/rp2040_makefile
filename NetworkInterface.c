@@ -239,6 +239,7 @@ uint16_t tud_network_xmit_cb(uint8_t *dst, void *src, uint16_t size) {
 	return size;
 }
 
-// the network is re-initializing
+// the network has initialized
 void tud_network_init_cb(void) {
+	vNetworkNotifyIFUp();
 }
