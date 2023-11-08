@@ -10,6 +10,7 @@
 
 #include "pseudomalloc.h"
 #include "network.h"
+#include "server.h"
 
 /*
 src/rp2_common/pico_standard_link/crt0.S:decl_isr_bkpt isr_invalid
@@ -19,6 +20,10 @@ src/rp2_common/pico_standard_link/crt0.S:decl_isr_bkpt isr_svcall
 src/rp2_common/pico_standard_link/crt0.S:decl_isr_bkpt isr_pendsv
 src/rp2_common/pico_standard_link/crt0.S:decl_isr_bkpt isr_systick
 */
+
+#undef stdout
+
+void* stdout;
 
 size_t __wrap_strlen(const char* str) {
 	for (size_t i = 0; 1; i++) {
@@ -36,6 +41,7 @@ static const uint LED_PIN = 25;
 
 void init_task(void* params) {
 	xTaskCreate( network_task, "net", configMINIMAL_STACK_SIZE*16, NULL, 1, NULL);
+	xTaskCreate( server_task, "srv", configMINIMAL_STACK_SIZE*4, NULL, 1, NULL);
 
 	(void)params;
 

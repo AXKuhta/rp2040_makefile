@@ -20,6 +20,7 @@ EXCLUDE = 	pico-sdk/src/rp2_common/pico_async_context/% \
 			pico-sdk/src/rp2_common/boot_stage2/% \
 			pico-sdk/src/rp2_common/pico_double/%_none.S \
 			pico-sdk/src/rp2_common/pico_float/%_none.S \
+			pico-sdk/src/rp2_common/pico_printf/printf.c \
 			pico-sdk/src/rp2_common/pico_printf/printf_none.S \
 			pico-sdk/src/rp2_common/pico_stdio_usb/%
 
@@ -129,8 +130,8 @@ DEFINES = 	CFG_TUSB_MCU=OPT_MCU_RP2040 \
 			LIB_PICO_MEM_OPS=1 \
 			LIB_PICO_MEM_OPS_PICO=1 \
 			LIB_PICO_PLATFORM=1 \
-			LIB_PICO_PRINTF=1 \
-			LIB_PICO_PRINTF_PICO=1 \
+			LIB_PICO_PRINTF=0 \
+			LIB_PICO_PRINTF_PICO=0 \
 			LIB_PICO_RUNTIME=1 \
 			LIB_PICO_STANDARD_LINK=1 \
 			LIB_PICO_STDIO=1 \
@@ -166,7 +167,7 @@ LDWRAP_PICO_FLOAT = __aeabi_fadd __aeabi_fdiv __aeabi_fmul __aeabi_frsub __aeabi
 LDWRAP_PICO_DOUBLE = __aeabi_dadd __aeabi_ddiv __aeabi_dmul __aeabi_drsub __aeabi_dsub __aeabi_cdcmpeq __aeabi_cdrcmple __aeabi_cdcmple __aeabi_dcmpeq __aeabi_dcmplt __aeabi_dcmple __aeabi_dcmpge __aeabi_dcmpgt __aeabi_dcmpun __aeabi_i2d __aeabi_l2d __aeabi_ui2d __aeabi_ul2d __aeabi_d2iz __aeabi_d2lz __aeabi_d2uiz __aeabi_d2ulz __aeabi_d2f sqrt cos sin tan atan2 exp log ldexp copysign trunc floor ceil round sincos asin acos atan sinh cosh tanh asinh acosh atanh exp2 log2 exp10 log10 pow powint hypot cbrt fmod drem remainder remquo expm1 log1p fma
 LDWRAP_PICO_MALLOC = malloc calloc realloc free
 LDWRAP_PICO_MEM_OPS = memcpy memset __aeabi_memcpy __aeabi_memset __aeabi_memcpy4 __aeabi_memset4 __aeabi_memcpy8 __aeabi_memset8
-LDWRAP_PICO_PRINTF = sprintf snprintf vsnprintf
+LDWRAP_PICO_PRINTF = 
 LDWRAP_PICO_STDIO = printf vprintf puts putchar getchar
 LDWRAP = $(LDWRAP_PICO_BITOPS) $(LDWRAP_PICO_DIVIDER) $(LDWRAP_PICO_INT64) $(LDWRAP_PICO_FLOAT) $(LDWRAP_PICO_DOUBLE) $(LDWRAP_PICO_MALLOC) $(LDWRAP_PICO_MEM_OPS) $(LDWRAP_PICO_PRINTF) $(LDWRAP_PICO_STDIO) strlen
 
@@ -174,10 +175,10 @@ LDSCRIPT = pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld
 
 INCLUDE = $(HEADER_DIRS:%=-I"%") -I"generated/pico_base" -I"."
 MCUFLAGS = -mcpu=cortex-m0plus -mthumb
-CFLAGS = -Og -ggdb3 -Wall -Wextra $(MCUFLAGS) $(INCLUDE) $(DEFINES:%=-D"%")
+CFLAGS = -Og -ggdb3 -Wall -Wextra $(MCUFLAGS) $(INCLUDE) $(DEFINES:%=-D"%") --specs=./picolibc.specs
 
 # -nostartfiles is important, without it a crash happens inside frame_dummy()
-LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map --specs=nosys.specs -nostartfiles -nostdlib
+LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map --specs=./picolibc.specs -nostdlib
 
 CC = arm-none-eabi-gcc
 
@@ -189,7 +190,7 @@ firmware.uf2: firmware.elf
 
 firmware.elf: $(OBJS)
 	@echo " [LD] firmware.elf"
-	@$(CC) -g $(OBJS) -o firmware.elf $(LDFLAGS)
+	@$(CC) -g $(OBJS) libc.a -o firmware.elf $(LDFLAGS)
 
 %.o: %.c
 	@echo " [CC]" $^
