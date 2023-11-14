@@ -46,16 +46,8 @@ static void read_lines(Socket_t client) {
 
 			if (found) {
 				buffer[i] = 0;
-				//printf("Line: %s\n", buffer);
 
-				char* resp = malloc(100);
-
-				snprintf(resp, 100, "hello %.30lf\n", 1532.62500000000045475);
-
-				send_all(client, resp, strlen(resp));
-				send_all(client, "> ", 2);
-
-				free(resp);
+				printf("Got [%s]\n> ", buffer);
 
 				memmove(buffer, buffer + i + 1, 128 - i - 1);
 
@@ -69,9 +61,10 @@ static void read_lines(Socket_t client) {
 }
 
 static void client_task(void* params) {
+	vTaskSetThreadLocalStoragePointer(NULL, 0, params);
 	Socket_t client = params;
 
-	send_all(client, "Hello!\n> ", 9);
+	printf("Hello!\n> ");
 	read_lines(client);
 
 	FreeRTOS_shutdown(client, FREERTOS_SHUT_RDWR);
