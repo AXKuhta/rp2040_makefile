@@ -22,7 +22,9 @@ EXCLUDE = 	pico-sdk/src/rp2_common/pico_async_context/% \
 			pico-sdk/src/rp2_common/pico_float/%_none.S \
 			pico-sdk/src/rp2_common/pico_printf/printf.c \
 			pico-sdk/src/rp2_common/pico_printf/printf_none.S \
-			pico-sdk/src/rp2_common/pico_stdio_usb/%
+			pico-sdk/src/rp2_common/pico_stdio_uart/% \
+			pico-sdk/src/rp2_common/pico_stdio_usb/% \
+			pico-sdk/src/rp2_common/pico_stdio/%
 
 APP_SRCS = $(wildcard *.c)
 
@@ -57,7 +59,7 @@ TINYUSB_DEVICE_SRCS = 	src/portable/raspberrypi/rp2040/dcd_rp2040.c \
 						src/class/vendor/vendor_device.c \
 						src/class/video/video_device.c
 
-TINYUSB_BSP_SRCS = hw/bsp/rp2040/family.c
+TINYUSB_BSP_SRCS = # hw/bsp/rp2040/family.c
 TINYUSB_NETWORKING_SRCS = lib/networking/rndis_reports.c
 
 TINYUSB_SRCS_REL = $(TINYUSB_COMMON_SRCS) $(TINYUSB_DEVICE_SRCS) $(TINYUSB_BSP_SRCS) $(TINYUSB_NETWORKING_SRCS)
@@ -134,8 +136,8 @@ DEFINES = 	CFG_TUSB_MCU=OPT_MCU_RP2040 \
 			LIB_PICO_PRINTF_PICO=0 \
 			LIB_PICO_RUNTIME=1 \
 			LIB_PICO_STANDARD_LINK=1 \
-			LIB_PICO_STDIO=1 \
-			LIB_PICO_STDIO_UART=1 \
+			LIB_PICO_STDIO=0 \
+			LIB_PICO_STDIO_UART=0 \
 			LIB_PICO_STDIO_USB=0 \
 			LIB_PICO_STDLIB=1 \
 			LIB_PICO_SYNC=1 \
@@ -165,11 +167,18 @@ LDWRAP_PICO_DIVIDER = __aeabi_idiv __aeabi_idivmod __aeabi_ldivmod __aeabi_uidiv
 LDWRAP_PICO_INT64 = __aeabi_lmul
 LDWRAP_PICO_FLOAT = __aeabi_fadd __aeabi_fdiv __aeabi_fmul __aeabi_frsub __aeabi_fsub __aeabi_cfcmpeq __aeabi_cfrcmple __aeabi_cfcmple __aeabi_fcmpeq __aeabi_fcmplt __aeabi_fcmple __aeabi_fcmpge __aeabi_fcmpgt __aeabi_fcmpun __aeabi_i2f __aeabi_l2f __aeabi_ui2f __aeabi_ul2f __aeabi_f2iz __aeabi_f2lz __aeabi_f2uiz __aeabi_f2ulz __aeabi_f2d sqrtf cosf sinf tanf atan2f expf logf ldexpf copysignf truncf floorf ceilf roundf sincosf asinf acosf atanf sinhf coshf tanhf asinhf acoshf atanhf exp2f log2f exp10f log10f powf powintf hypotf cbrtf fmodf dremf remainderf remquof expm1f log1pf fmaf
 LDWRAP_PICO_DOUBLE = __aeabi_dadd __aeabi_ddiv __aeabi_dmul __aeabi_drsub __aeabi_dsub __aeabi_cdcmpeq __aeabi_cdrcmple __aeabi_cdcmple __aeabi_dcmpeq __aeabi_dcmplt __aeabi_dcmple __aeabi_dcmpge __aeabi_dcmpgt __aeabi_dcmpun __aeabi_i2d __aeabi_l2d __aeabi_ui2d __aeabi_ul2d __aeabi_d2iz __aeabi_d2lz __aeabi_d2uiz __aeabi_d2ulz __aeabi_d2f sqrt cos sin tan atan2 exp log ldexp copysign trunc floor ceil round sincos asin acos atan sinh cosh tanh asinh acosh atanh exp2 log2 exp10 log10 pow powint hypot cbrt fmod drem remainder remquo expm1 log1p fma
-LDWRAP_PICO_MALLOC = malloc calloc realloc free
 LDWRAP_PICO_MEM_OPS = memcpy memset __aeabi_memcpy __aeabi_memset __aeabi_memcpy4 __aeabi_memset4 __aeabi_memcpy8 __aeabi_memset8
-LDWRAP_PICO_PRINTF = 
-LDWRAP_PICO_STDIO = printf vprintf puts putchar getchar
-LDWRAP = $(LDWRAP_PICO_BITOPS) $(LDWRAP_PICO_DIVIDER) $(LDWRAP_PICO_INT64) $(LDWRAP_PICO_FLOAT) $(LDWRAP_PICO_DOUBLE) $(LDWRAP_PICO_MALLOC) $(LDWRAP_PICO_MEM_OPS) $(LDWRAP_PICO_PRINTF) $(LDWRAP_PICO_STDIO)
+# LDWRAP_PICO_MALLOC = malloc calloc realloc free
+# LDWRAP_PICO_PRINTF = sprintf snprintf vsnprintf
+# LDWRAP_PICO_STDIO = printf vprintf puts putchar getchar
+
+# Only wrap libgcc and libm functions, do not wrap libc functions (we have proper implementations from picolibc)
+LDWRAP = 	$(LDWRAP_PICO_BITOPS) \
+			$(LDWRAP_PICO_DIVIDER) \
+			$(LDWRAP_PICO_INT64) \
+			$(LDWRAP_PICO_FLOAT) \
+			$(LDWRAP_PICO_DOUBLE) \
+			$(LDWRAP_PICO_MEM_OPS)
 
 LDSCRIPT = pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld
 

@@ -50,9 +50,6 @@ const uint8_t Gateway[4] = {169, 254, 0, 1};
 const uint8_t DNSServer[4] = {1, 1, 1, 1};
 
 void network_task() {
-	// initialize TinyUSB
-	board_init();
-
 	// init device stack on configured roothub port
 	tud_init(BOARD_TUD_RHPORT);
 
