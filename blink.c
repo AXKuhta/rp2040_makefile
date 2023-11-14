@@ -25,13 +25,6 @@ src/rp2_common/pico_standard_link/crt0.S:decl_isr_bkpt isr_systick
 
 void* stdout;
 
-size_t __wrap_strlen(const char* str) {
-	for (size_t i = 0; 1; i++) {
-		if (str[i] == 0)
-			return i;
-	}
-}
-
 void isr_hardfault(void) {
 	_write(1, "HARDFAULT\n", 10);
 	reset_usb_boot(1 << 25, 0);
