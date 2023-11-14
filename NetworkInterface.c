@@ -39,7 +39,7 @@ enum if_state_t
     INTERFACE_UP,
 };
 
-volatile static uint32_t xInterfaceState = INTERFACE_DOWN;
+static volatile uint32_t xInterfaceState = INTERFACE_DOWN;
 
 static NetworkInterface_t * pxMyInterface;
 
@@ -64,7 +64,7 @@ NetworkInterface_t * pxRNDIS_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
     NetworkInterface_t * pxFillInterfaceDescriptor( BaseType_t xEMACIndex,
                                                     NetworkInterface_t * pxInterface )
     {
-        pxRNDIS_Eth_FillInterfaceDescriptor( xEMACIndex, pxInterface );
+        return pxRNDIS_Eth_FillInterfaceDescriptor( xEMACIndex, pxInterface );
     }
 
 #endif
@@ -98,6 +98,8 @@ NetworkInterface_t * pxRNDIS_Eth_FillInterfaceDescriptor( BaseType_t xEMACIndex,
 
 static BaseType_t xRNDIS_Eth_NetworkInterfaceInitialise( NetworkInterface_t * pxInterface )
 {
+	(void) pxInterface;
+
     if( xInterfaceState == INTERFACE_UP )
     {
         return pdTRUE;
@@ -108,6 +110,8 @@ static BaseType_t xRNDIS_Eth_NetworkInterfaceInitialise( NetworkInterface_t * px
 
 static BaseType_t xRNDIS_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface )
 {
+	(void) pxInterface;
+
     BaseType_t xResult = pdFALSE;
 
     if( xInterfaceState == INTERFACE_UP )
@@ -118,7 +122,7 @@ static BaseType_t xRNDIS_Eth_GetPhyLinkStatus( NetworkInterface_t * pxInterface 
     return xResult;
 }
 
-static bool linkoutput_fn(const uint8_t *src, uint16_t size) {
+static bool linkoutput_fn(uint8_t *src, uint16_t size) {
 	while (1) {
 		// if TinyUSB isn't ready, we must signal back to lwip that there is nothing we can do
 		if (!tud_ready())
@@ -139,6 +143,8 @@ static BaseType_t xRNDIS_Eth_NetworkInterfaceOutput( NetworkInterface_t * pxInte
                                                      NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                      BaseType_t xReleaseAfterSend )
 {
+	(void) pxInterface;
+
     if( ( pxNetworkBuffer == NULL ) || ( pxNetworkBuffer->pucEthernetBuffer == NULL ) || ( pxNetworkBuffer->xDataLength == 0 ) )
     {
         return pdFALSE;
