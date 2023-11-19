@@ -2,6 +2,8 @@
 
 #include "FreeRTOS_IP.h"
 
+#include "cli.h"
+
 static void send_all(Socket_t client, char* data, size_t size) {
 	size_t pending = size;
 
@@ -47,7 +49,8 @@ static void read_lines(Socket_t client) {
 			if (found) {
 				buffer[i] = 0;
 
-				printf("Got [%s]\n> ", buffer);
+				run(buffer);
+				printf("> ");
 
 				memmove(buffer, buffer + i + 1, 128 - i - 1);
 
