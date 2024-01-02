@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <stdlib.h>
 #include <stdarg.h>
 
@@ -10,10 +12,10 @@ int printf(const char *restrict fmt, ...) {
 	va_list ap;
 	int i;
 
-	char* buf = malloc(128);
+	char* buf = NULL;
 
 	va_start(ap, fmt);
-	i = vsnprintf(buf, 128, fmt, ap);
+	i = vasprintf(&buf, fmt, ap);
 	va_end(ap);
 
 	void* sock = pvTaskGetThreadLocalStoragePointer(NULL, 0);

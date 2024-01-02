@@ -37,10 +37,3 @@ void* calloc(size_t nmemb, size_t size) {
 void free(void* memory) {
 	vPortFree(memory);
 }
-
-void* realloc(void *ptr, size_t size) {
-	// Nobody calls it anyway
-	(void)ptr;
-	(void)size;
-	while (1) {}
-}
