@@ -4,7 +4,6 @@
 #include "pico/stdlib.h"
 #include "pico/printf.h"
 #include "pico/bootrom.h"
-#include "hardware/pwm.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -32,51 +31,14 @@ void isr_hardfault(void) {
 
 static const uint LED_PIN = 25;
 
-#define SWPWM 2
-#define HW0 0 // Pin 0: Carrier for debugging
-#define HW1 1 // Pin 1: Modulated
-
-static void nops(size_t count) {
-	for (size_t i = 0; i < count; i++)
-		__asm volatile ("nop");
-}
-
 void init_task(void* params) {
 	xTaskCreate( network_task, "net", configMINIMAL_STACK_SIZE*16, NULL, 1, NULL);
 	xTaskCreate( server_task, "srv", configMINIMAL_STACK_SIZE*4, NULL, 1, NULL);
 
-	gpio_init (SWPWM);
-	gpio_set_dir (SWPWM, 1);
-	gpio_set_outover (SWPWM, GPIO_OVERRIDE_NORMAL);
-
-	gpio_set_function(HW0, GPIO_FUNC_PWM);
-	gpio_set_function(HW1, GPIO_FUNC_PWM);
-	gpio_set_outover (HW1, GPIO_OVERRIDE_INVERT);
-
-	int slice = pwm_gpio_to_slice_num(HW0);
-
-	// 50% duty cycle
-	pwm_set_wrap(slice, 1);
-	pwm_set_chan_level(slice, PWM_CHAN_A, 1);
-	pwm_set_chan_level(slice, PWM_CHAN_B, 1);
-
-	// We want a signal at 20 MHz
-	// integer 		125 // 20 = 6
-	// frac			(125 % 20 / 20) * 2^4 = 4
-	pwm_set_clkdiv_int_frac (slice, 6, 4);
-	pwm_set_enabled(slice, 1);
-
 	(void)params;
 
 	while (1) {
-		for (int i = 0; i < 1024; i++) {
-			gpio_set_outover (HW1, GPIO_OVERRIDE_INVERT);
-			nops(100);
-			gpio_set_outover (HW1, GPIO_OVERRIDE_NORMAL);
-			nops(100);
-		}
-
-		vTaskDelay(1000/20);
+		vTaskDelay(0);
 	}
 
 	//reset_usb_boot(1 << 25, 0);
