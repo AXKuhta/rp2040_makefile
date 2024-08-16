@@ -213,7 +213,7 @@ flash: firmware.elf
 	@openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 400" -c "program firmware.elf verify reset exit"
 
 debug: firmware.elf
-	@openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 400" & gdb-multiarch firmware.elf -ex "target extended-remote :3333" && kill 0 && exit 0
+	@openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 400" & gdb-multiarch firmware.elf -ex "target extended-remote :3333" -ex "monitor [target current] configure -event gdb-detach {shutdown}"
 
 clean:
 	@rm -f $(OBJS) firmware.uf2 firmware.elf firmware.map
