@@ -24,7 +24,8 @@ EXCLUDE = 	pico-sdk/src/rp2_common/pico_async_context/% \
 			pico-sdk/src/rp2_common/pico_printf/printf_none.S \
 			pico-sdk/src/rp2_common/pico_stdio_uart/% \
 			pico-sdk/src/rp2_common/pico_stdio_usb/% \
-			pico-sdk/src/rp2_common/pico_stdio/%
+			pico-sdk/src/rp2_common/pico_stdio/% \
+			pico-sdk/src/rp2_common/pico_bootsel_via_double_reset/%
 
 APP_SRCS = $(wildcard *.c)
 
