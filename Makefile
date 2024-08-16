@@ -182,7 +182,7 @@ LDWRAP = 	$(LDWRAP_PICO_BITOPS) \
 LDSCRIPT = pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld
 
 INCLUDE = $(HEADER_DIRS:%=-I"%") -I"generated/pico_base" -I"."
-MCUFLAGS = -mcpu=cortex-m0plus -mthumb
+MCUFLAGS = -mcpu=cortex-m0plus
 CFLAGS = -Og -ggdb3 -Wall -Wextra $(MCUFLAGS) $(INCLUDE) $(DEFINES:%=-D"%") --specs=./picolibc.specs
 
 # -nostartfiles is important, without it a crash happens inside frame_dummy()
