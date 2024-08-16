@@ -25,7 +25,10 @@ EXCLUDE = 	pico-sdk/src/rp2_common/pico_async_context/% \
 			pico-sdk/src/rp2_common/pico_stdio_uart/% \
 			pico-sdk/src/rp2_common/pico_stdio_usb/% \
 			pico-sdk/src/rp2_common/pico_stdio/% \
-			pico-sdk/src/rp2_common/pico_bootsel_via_double_reset/%
+			pico-sdk/src/rp2_common/pico_bootsel_via_double_reset/% \
+			pico-sdk/src/common/pico_sync/% \
+			pico-sdk/src/common/pico_util/% \
+			pico-sdk/src/common/pico_time/%
 
 APP_SRCS = $(wildcard *.c)
 
@@ -113,7 +116,7 @@ HEADER_DIRS = 	$(RP2040_HW_HEADER_DIRS) \
 # Preprocessor defines
 # cmake --build build --verbose 2>&1 >log
 DEFINES = 	CFG_TUSB_MCU=OPT_MCU_RP2040 \
-			CFG_TUSB_OS=OPT_OS_PICO \
+			CFG_TUSB_OS=OPT_OS_FREERTOS \
 			DEBUG=1 \
 			PICO_DIVIDER_CALL_IDIV0=0 \
 			PICO_DIVIDER_CALL_LDIV0=0 \
@@ -158,7 +161,8 @@ DEFINES = 	CFG_TUSB_MCU=OPT_MCU_RP2040 \
 			PICO_RP2040_USB_DEVICE_UFRAME_FIX=1 \
 			PICO_TARGET_NAME=\"TIMERS_DEMO\" \
 			PICO_USE_BLOCKED_RAM=0 \
-			PICO_ENTER_USB_BOOT_ON_EXIT=1
+			PICO_ENTER_USB_BOOT_ON_EXIT=1 \
+			PICO_TIME_DEFAULT_ALARM_POOL_DISABLED=1
 
 # Pre-implemented goodies
 # git grep pico_wrap_function

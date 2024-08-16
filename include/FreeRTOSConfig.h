@@ -45,7 +45,7 @@
 #define configIDLE_SHOULD_YIELD                 1
 #define configUSE_TASK_NOTIFICATIONS            1
 #define configTASK_NOTIFICATION_ARRAY_ENTRIES   3
-#define configUSE_MUTEXES                       0
+#define configUSE_MUTEXES                       1
 #define configUSE_RECURSIVE_MUTEXES             0
 #define configUSE_COUNTING_SEMAPHORES           1
 #define configQUEUE_REGISTRY_SIZE               10
@@ -53,6 +53,9 @@
 #define configUSE_NEWLIB_REENTRANT              0
 #define configENABLE_BACKWARD_COMPATIBILITY     0
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS 5
+
+#define configSUPPORT_PICO_SYNC_INTEROP         0
+#define configSUPPORT_PICO_TIME_INTEROP         0
 
 #define configSTACK_DEPTH_TYPE                  uint16_t
 #define configMESSAGE_BUFFER_LENGTH_TYPE        size_t      // Defaults to size_t for backward compatibility,

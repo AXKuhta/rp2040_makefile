@@ -29,6 +29,19 @@ void isr_hardfault(void) {
 	reset_usb_boot(1 << 25, 0);
 }
 
+// Runtime hacks
+void recursive_mutex_init(void* x) {
+	(void)x;
+}
+
+void mutex_init(void* x) {
+	(void)x;
+}
+
+void alarm_pool_init_default() {
+
+}
+
 static const uint LED_PIN = 25;
 
 void init_task(void* params) {
