@@ -51,7 +51,7 @@ void init_task(void* params) {
 	(void)params;
 
 	while (1) {
-		vTaskDelay(0);
+		vTaskDelay(1000);
 	}
 
 	//reset_usb_boot(1 << 25, 0);

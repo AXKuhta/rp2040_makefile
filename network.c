@@ -62,7 +62,6 @@ void network_task() {
 		gpio_put(LED_PIN, last_rx + 50 > now || last_tx + 50 > now);
 
 		tud_task();
-		vTaskDelay(0);
 	}
 }
 
