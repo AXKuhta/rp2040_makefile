@@ -9,7 +9,7 @@ SDK_SRCS = $(wildcard pico-sdk/src/common/*/*.c)
 RP2_ASM_HEADER_DIRS = $(wildcard pico-sdk/src/rp2_common/*/asminclude/)
 RP2_HEADER_DIRS = $(wildcard pico-sdk/src/rp2_common/*/include/)
 RP2_ASM_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.S)
-RP2_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.c)
+RP2_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.c)  $(wildcard pico-sdk/src/rp2040/*/*.c)
 
 EXCLUDE = 	pico-sdk/src/rp2_common/pico_async_context/% \
 			pico-sdk/src/rp2_common/pico_btstack/% \
@@ -28,23 +28,20 @@ EXCLUDE = 	pico-sdk/src/rp2_common/pico_async_context/% \
 			pico-sdk/src/rp2_common/pico_bootsel_via_double_reset/% \
 			pico-sdk/src/rp2_common/hardware_powman/% \
 			pico-sdk/src/rp2_common/hardware_sha256/% \
-			pico-sdk/src/rp2_common/pico_clib_interface/% \
+			pico-sdk/src/rp2_common/pico_clib_interface/pico% \
+			pico-sdk/src/rp2_common/pico_clib_interface/llvm% \
 			pico-sdk/src/rp2_common/pico_mbedtls/% \
 			pico-sdk/src/rp2_common/pico_sha256/% \
 			pico-sdk/src/rp2_common/pico_malloc/% \
 			pico-sdk/src/rp2_common/pico_stdio_rtt/% \
 			pico-sdk/src/rp2_common/hardware_i2c/% \
-			pico-sdk/src/common/pico_sync/% \
-			pico-sdk/src/common/pico_util/% \
-			pico-sdk/src/common/pico_time/% \
 			pico-sdk/src/rp2_common/pico_aon_timer/% \
 			pico-sdk/src/rp2_common/pico_i2c_slave/% \
-			pico-sdk/src/rp2_common/pico_multicore/% \
 			pico-sdk/src/rp2_common/pico_rand/% \
 			%_riscv.S \
 			%/divider_compiler.c \
-			pico-sdk/src/rp2_common/pico_float/% \
-			pico-sdk/src/rp2_common/pico_double/% \
+			%dcp.S \
+			%hazard3.S \
 
 APP_SRCS = $(wildcard *.c)
 
@@ -130,6 +127,9 @@ HEADER_DIRS = 			generated \
 # COMPILER FLAGS
 ################################################################################
 
+#PICO_NO_RAM_VECTOR_TABLE=1\
+#			PICO_DISABLE_SHARED_IRQ_HANDLERS=1\
+
 # Preprocessor defines
 # cmake --build build --verbose 2>&1 >log
 DEFINES = 		PICO_RP2040=1 \
@@ -180,7 +180,7 @@ DEFINES = 		PICO_RP2040=1 \
 			PICO_TARGET_NAME=\"TIMERS_DEMO\" \
 			PICO_USE_BLOCKED_RAM=0 \
 			PICO_ENTER_USB_BOOT_ON_EXIT=1 \
-			PICO_TIME_DEFAULT_ALARM_POOL_DISABLED=1
+			PICO_CLIB=newlib
 
 # Pre-implemented goodies
 # git grep pico_wrap_function
@@ -212,7 +212,7 @@ CFLAGS = -Og -ggdb3 -Wall -Wextra $(MCUFLAGS) $(INCLUDE) $(DEFINES:%=-D"%")
 # --specs=./picolibc.specs
 
 # -nostartfiles is important, without it a crash happens inside frame_dummy()
-LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) -L $(LDINCLUDE) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map
+LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) -L $(LDINCLUDE) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map -nostartfiles
 
 
 # --specs=./picolibc.specs -nostdlib
@@ -227,7 +227,7 @@ firmware.uf2: firmware.elf
 
 firmware.elf: $(OBJS)
 	@echo " [LD] firmware.elf"
-	@$(CC) -g $(OBJS) -o firmware.elf $(LDFLAGS)
+	@$(CC) -ggdb3 $(OBJS) -o firmware.elf $(LDFLAGS)
 #	@$(CC) -g $(OBJS) libc.a -o firmware.elf $(LDFLAGS)
 
 %.o: %.c
