@@ -1,10 +1,9 @@
-
 ################################################################################
 # SOURCE FILES
 ################################################################################
 RP2040_HW_HEADER_DIRS = $(wildcard pico-sdk/src/rp2040/*/include/)
 
-SDK_HEADER_DIRS = $(wildcard pico-sdk/src/common/*/include/)
+SDK_HEADER_DIRS = $(wildcard pico-sdk/src/common/*/include/) $(wildcard pico-sdk/src/rp2_common/*/include/)
 SDK_SRCS = $(wildcard pico-sdk/src/common/*/*.c)
 
 RP2_ASM_HEADER_DIRS = $(wildcard pico-sdk/src/rp2_common/*/asminclude/)
@@ -17,22 +16,39 @@ EXCLUDE = 	pico-sdk/src/rp2_common/pico_async_context/% \
 			pico-sdk/src/rp2_common/pico_cyw43_driver/% \
 			pico-sdk/src/rp2_common/pico_cyw43_arch/% \
 			pico-sdk/src/rp2_common/pico_lwip/% \
-			pico-sdk/src/rp2_common/boot_stage2/% \
+			pico-sdk/src/rp2040/boot_stage2/% \
 			pico-sdk/src/rp2_common/pico_double/%_none.S \
 			pico-sdk/src/rp2_common/pico_float/%_none.S \
 			pico-sdk/src/rp2_common/pico_printf/printf.c \
 			pico-sdk/src/rp2_common/pico_printf/printf_none.S \
+			pico-sdk/src/rp2_common/pico_stdio_semihosting/% \
 			pico-sdk/src/rp2_common/pico_stdio_uart/% \
 			pico-sdk/src/rp2_common/pico_stdio_usb/% \
 			pico-sdk/src/rp2_common/pico_stdio/% \
 			pico-sdk/src/rp2_common/pico_bootsel_via_double_reset/% \
+			pico-sdk/src/rp2_common/hardware_powman/% \
+			pico-sdk/src/rp2_common/hardware_sha256/% \
+			pico-sdk/src/rp2_common/pico_clib_interface/% \
+			pico-sdk/src/rp2_common/pico_mbedtls/% \
+			pico-sdk/src/rp2_common/pico_sha256/% \
+			pico-sdk/src/rp2_common/pico_malloc/% \
+			pico-sdk/src/rp2_common/pico_stdio_rtt/% \
+			pico-sdk/src/rp2_common/hardware_i2c/% \
 			pico-sdk/src/common/pico_sync/% \
 			pico-sdk/src/common/pico_util/% \
-			pico-sdk/src/common/pico_time/%
+			pico-sdk/src/common/pico_time/% \
+			pico-sdk/src/rp2_common/pico_aon_timer/% \
+			pico-sdk/src/rp2_common/pico_i2c_slave/% \
+			pico-sdk/src/rp2_common/pico_multicore/% \
+			pico-sdk/src/rp2_common/pico_rand/% \
+			%_riscv.S \
+			%/divider_compiler.c \
+			pico-sdk/src/rp2_common/pico_float/% \
+			pico-sdk/src/rp2_common/pico_double/% \
 
 APP_SRCS = $(wildcard *.c)
 
-RP2_BOOT = pico-sdk/src/rp2_common/boot_stage2/bs2_default_padded_checksummed.S
+RP2_BOOT = pico-sdk/src/rp2040/boot_stage2/bs2_default_padded_checksummed.S
 
 # TinyUSB
 # tinyusb/hw/bsp/family_support.cmake
@@ -94,20 +110,21 @@ OBJS = 	$(ASM_SRCS:S=o) \
 		$(RP2_BOOT:S=o) \
 		$(SRCS:c=o) \
 		$(APP_SRCS:c=o) \
-		$(TINYUSB_SRCS:c=o) \
-		$(FREERTOS_SRCS:c=o) \
-		$(FREERTOS_PLUS_TCP_SRCS:c=o)
+
+#		$(TINYUSB_SRCS:c=o) \
+#		$(FREERTOS_SRCS:c=o) \
+#		$(FREERTOS_PLUS_TCP_SRCS:c=o)
 
 # Must exclude pico-sdk/src/rp2_common/pico_stdio_usb/include/tusb_config.h
 # find . | grep tusb_config
-HEADER_DIRS = 	$(RP2040_HW_HEADER_DIRS) \
+HEADER_DIRS = 			generated \
+				$(RP2040_HW_HEADER_DIRS) \
 				$(SDK_HEADER_DIRS) \
 				$(RP2_ASM_HEADER_DIRS) \
 				$(filter-out pico-sdk/src/rp2_common/pico_stdio_usb/include/, $(RP2_HEADER_DIRS)) \
 				$(TINYUSB_HEADER_DIRS) \
 				$(FREERTOS_HEADER_DIRS) \
 				$(FREERTOS_PLUS_TCP_HEADER_DIRS) \
-				include/
 
 ################################################################################
 # COMPILER FLAGS
@@ -115,7 +132,8 @@ HEADER_DIRS = 	$(RP2040_HW_HEADER_DIRS) \
 
 # Preprocessor defines
 # cmake --build build --verbose 2>&1 >log
-DEFINES = 	CFG_TUSB_MCU=OPT_MCU_RP2040 \
+DEFINES = 		PICO_RP2040=1 \
+			CFG_TUSB_MCU=OPT_MCU_RP2040 \
 			CFG_TUSB_OS=OPT_OS_FREERTOS \
 			DEBUG=1 \
 			PICO_DIVIDER_CALL_IDIV0=0 \
@@ -184,14 +202,20 @@ LDWRAP = 	$(LDWRAP_PICO_BITOPS) \
 			$(LDWRAP_PICO_DOUBLE) \
 			$(LDWRAP_PICO_MEM_OPS)
 
-LDSCRIPT = pico-sdk/src/rp2_common/pico_standard_link/memmap_default.ld
+LDSCRIPT = pico-sdk/src/rp2_common/pico_crt0/rp2040/memmap_default.ld
+LDINCLUDE = generated/
 
-INCLUDE = $(HEADER_DIRS:%=-I"%") -I"generated/pico_base" -I"."
+INCLUDE = $(HEADER_DIRS:%=-I"%") -I"."
 MCUFLAGS = -mcpu=cortex-m0plus
-CFLAGS = -Og -ggdb3 -Wall -Wextra $(MCUFLAGS) $(INCLUDE) $(DEFINES:%=-D"%") --specs=./picolibc.specs
+CFLAGS = -Og -ggdb3 -Wall -Wextra $(MCUFLAGS) $(INCLUDE) $(DEFINES:%=-D"%")
+
+# --specs=./picolibc.specs
 
 # -nostartfiles is important, without it a crash happens inside frame_dummy()
-LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map --specs=./picolibc.specs -nostdlib
+LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) -L $(LDINCLUDE) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map
+
+
+# --specs=./picolibc.specs -nostdlib
 
 CC = arm-none-eabi-gcc
 
@@ -199,11 +223,12 @@ all: firmware.uf2
 
 firmware.uf2: firmware.elf
 	@echo " [ELF2UF2] firmware.uf2"
-	@./elf2uf2.elf firmware.elf firmware.uf2
+	@python3 elf2uf2.py -o firmware.uf2 firmware.elf
 
 firmware.elf: $(OBJS)
 	@echo " [LD] firmware.elf"
-	@$(CC) -g $(OBJS) libc.a -o firmware.elf $(LDFLAGS)
+	@$(CC) -g $(OBJS) -o firmware.elf $(LDFLAGS)
+#	@$(CC) -g $(OBJS) libc.a -o firmware.elf $(LDFLAGS)
 
 %.o: %.c
 	@echo " [CC]" $^
@@ -221,4 +246,3 @@ debug: firmware.elf
 
 clean:
 	@rm -f $(OBJS) firmware.uf2 firmware.elf firmware.map
-
