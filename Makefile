@@ -28,7 +28,7 @@ EXCLUDE = 	pico-sdk/src/rp2_common/pico_async_context/% \
 			pico-sdk/src/rp2_common/pico_bootsel_via_double_reset/% \
 			pico-sdk/src/rp2_common/hardware_powman/% \
 			pico-sdk/src/rp2_common/hardware_sha256/% \
-			pico-sdk/src/rp2_common/pico_clib_interface/pico% \
+			pico-sdk/src/rp2_common/pico_clib_interface/newlib% \
 			pico-sdk/src/rp2_common/pico_clib_interface/llvm% \
 			pico-sdk/src/rp2_common/pico_mbedtls/% \
 			pico-sdk/src/rp2_common/pico_sha256/% \
@@ -127,9 +127,6 @@ HEADER_DIRS = 			generated \
 # COMPILER FLAGS
 ################################################################################
 
-#PICO_NO_RAM_VECTOR_TABLE=1\
-#			PICO_DISABLE_SHARED_IRQ_HANDLERS=1\
-
 # Preprocessor defines
 # cmake --build build --verbose 2>&1 >log
 DEFINES = 		PICO_RP2040=1 \
@@ -180,7 +177,7 @@ DEFINES = 		PICO_RP2040=1 \
 			PICO_TARGET_NAME=\"TIMERS_DEMO\" \
 			PICO_USE_BLOCKED_RAM=0 \
 			PICO_ENTER_USB_BOOT_ON_EXIT=1 \
-			PICO_CLIB=newlib
+			PICO_CLIB=picolibc
 
 # Pre-implemented goodies
 # git grep pico_wrap_function
@@ -207,15 +204,11 @@ LDINCLUDE = generated/
 
 INCLUDE = $(HEADER_DIRS:%=-I"%") -I"."
 MCUFLAGS = -mcpu=cortex-m0plus
-CFLAGS = -Og -ggdb3 -Wall -Wextra $(MCUFLAGS) $(INCLUDE) $(DEFINES:%=-D"%")
+CFLAGS = -Og -ggdb3 -Wall -Wextra $(MCUFLAGS) $(INCLUDE) $(DEFINES:%=-D"%") --specs=./picolibc.specs
 
-# --specs=./picolibc.specs
-
-# -nostartfiles is important, without it a crash happens inside frame_dummy()
-LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) -L $(LDINCLUDE) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map -nostartfiles
-
-
-# --specs=./picolibc.specs -nostdlib
+# If using newlib, add -nostartfiles
+# Without it a crash happens inside frame_dummy()
+LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) -L $(LDINCLUDE) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map --specs=./picolibc.specs -nostdlib
 
 CC = arm-none-eabi-gcc
 
@@ -227,8 +220,7 @@ firmware.uf2: firmware.elf
 
 firmware.elf: $(OBJS)
 	@echo " [LD] firmware.elf"
-	@$(CC) -ggdb3 $(OBJS) -o firmware.elf $(LDFLAGS)
-#	@$(CC) -g $(OBJS) libc.a -o firmware.elf $(LDFLAGS)
+	@$(CC) -ggdb3 $(OBJS) libc.a -o firmware.elf $(LDFLAGS)
 
 %.o: %.c
 	@echo " [CC]" $^

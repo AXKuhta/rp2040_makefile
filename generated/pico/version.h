@@ -17,3 +17,9 @@
 #define PICO_SDK_VERSION_STRING   "2.2.0"
 
 #endif
+
+// Extra hacks
+#define FDEV_SETUP_STREAM(...) {}
+#undef stdin
+#undef stdout
+#undef stderr
