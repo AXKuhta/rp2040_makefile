@@ -33,5 +33,6 @@ int vprintf(const char *format, va_list ap) {
 // A call to puts() may be inserted instead of printf() when the string being printed has an \n at the end of it and uses no format
 int puts(const char* str) {
 	tud_cdc_write_str(str);
+	tud_cdc_write_char('\n');
 	tud_cdc_write_flush();
 }

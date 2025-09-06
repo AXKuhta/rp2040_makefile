@@ -9,6 +9,7 @@
 #include "task.h"
 
 #include "allocator.h"
+#include "parport.h"
 
 /*
 src/rp2_common/pico_standard_link/crt0.S:decl_isr_bkpt isr_invalid
@@ -44,6 +45,45 @@ void _set_tls(void* tls) {
 	(void)tls;
 }
 
+const int GPIO_BASE = 14;
+const int GPIO_COUNT = 4;
+
+unsigned int sm;
+PIO pio;
+
+// https://github.com/raspberrypi/pico-examples/blob/master/pio/onewire/onewire_library/onewire_library.pio
+void parport_init() {
+	unsigned int offset = 0;
+
+	bool success = pio_claim_free_sm_and_add_program_for_gpio_range(&modulation_program, &pio, &sm, &offset, GPIO_BASE, GPIO_COUNT, true);
+
+	if (success) {
+		printf("PIO claimed\n");
+	} else {
+		printf("PIO error\n");
+		return;
+	}
+
+	pio_sm_config c = modulation_program_get_default_config(offset);
+
+	// Output Shift Register configuration settings
+	sm_config_set_out_shift(
+		&c,
+		false,           // shift direction: left
+		true,            // autopull: enabled
+		32               // autopull threshold
+	);
+
+	// pico-sdk/src/rp2_common/pico_status_led/ws2812.pio
+	sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+	sm_config_set_clkdiv(&c, 0); // OK?
+
+	pio_sm_init(pio, sm, offset, &c);
+	pio_sm_set_enabled(pio, sm, true);
+
+	printf("PIO running\n");
+}
+
 static const uint LED_PIN = 25;
 static uint32_t last_usb = 0;
 
@@ -59,11 +99,26 @@ void usb_task(void* params) {
 	(void)params;
 }
 
+// Feed the parallel port!
 void tud_vendor_rx_cb(uint8_t itf, uint8_t const* buffer, uint16_t bufsize) {
 	(void) itf;
 
-	for (int i = 0; i < bufsize; i++) {
-		gpio_put(LED_PIN, buffer[i] > 0 );
+	// First in, first out
+	while (bufsize >= 4) {
+		uint32_t word =
+			buffer[0] * 1 +
+			buffer[1] * 256 +
+			buffer[2] * 256*256 +
+			buffer[3] * 256*256*256;
+
+		buffer += 4;
+		bufsize -=4;
+
+		pio_sm_put_blocking(pio, sm, word);
+	}
+
+	if (bufsize) {
+		printf("Incomplete word!\n"); // malloc in an interrupt...
 	}
 
 	// if using RX buffered is enabled, we need to flush the buffer to make room for new data
@@ -75,6 +130,8 @@ void tud_vendor_rx_cb(uint8_t itf, uint8_t const* buffer, uint16_t bufsize) {
 void init_task(void* params) {
 	xTaskCreate( usb_task, "usb", configMINIMAL_STACK_SIZE*8, NULL, 1, NULL);
 	vTaskDelay(5000);
+
+	parport_init();
 
 	printf(" === System ready ===\n");
 
