@@ -1,6 +1,7 @@
 
 ```
 git clone https://github.com/raspberrypi/pico-sdk --branch=2.2.0 --depth=1
+git clone https://github.com/hathach/tinyusb --branch=0.18.0 --depth=1
 
 # Picolibc
 # We can get away with not building it from source!

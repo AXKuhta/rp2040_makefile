@@ -50,13 +50,12 @@ RP2_BOOT = pico-sdk/src/rp2350/boot_stage2/bs2_default_padded_checksummed.S
 # tinyusb/hw/bsp/rp2040/family.cmake
 #
 
-
 TINYUSB_HEADER_DIRS_REL = 	src/ \
 							src/common/ \
 							hw/ \
 							lib/networking/
 
-TINYUSB_COMMON_SRCS = src/tusb.c src/common/tusb_fifo.c
+TINYUSB_COMMON_SRCS = src/tusb.c src/common/tusb_fifo.c hw/bsp/board.c
 TINYUSB_DEVICE_SRCS = 	src/portable/raspberrypi/rp2040/dcd_rp2040.c \
 						src/portable/raspberrypi/rp2040/rp2040_usb.c \
 						src/device/usbd.c \
@@ -77,11 +76,13 @@ TINYUSB_DEVICE_SRCS = 	src/portable/raspberrypi/rp2040/dcd_rp2040.c \
 TINYUSB_BSP_SRCS = # hw/bsp/rp2040/family.c
 TINYUSB_NETWORKING_SRCS = lib/networking/rndis_reports.c
 
-TINYUSB_SRCS_REL = $(TINYUSB_COMMON_SRCS) $(TINYUSB_DEVICE_SRCS) $(TINYUSB_BSP_SRCS) $(TINYUSB_NETWORKING_SRCS)
+TINYUSB_SRCS_REL = $(TINYUSB_COMMON_SRCS) $(TINYUSB_DEVICE_SRCS) $(TINYUSB_BSP_SRCS)
+
+# $(TINYUSB_NETWORKING_SRCS)
 
 # Add tinyusb/ prefix to every folder and file + add USB enumeration fix from pico-sdk
-TINYUSB_HEADER_DIRS = $(TINYUSB_HEADER_DIRS_REL:%=tinyusb/%) pico-sdk/src/rp2_common/pico_fix/rp2040_usb_device_enumeration/include/
-TINYUSB_SRCS = $(TINYUSB_SRCS_REL:%=tinyusb/%) pico-sdk/src/rp2_common/pico_fix/rp2040_usb_device_enumeration/rp2040_usb_device_enumeration.c
+TINYUSB_HEADER_DIRS = $(TINYUSB_HEADER_DIRS_REL:%=tinyusb/%)
+TINYUSB_SRCS = $(TINYUSB_SRCS_REL:%=tinyusb/%)
 
 # FreeRTOS
 #
@@ -105,17 +106,18 @@ OBJS = 	$(ASM_SRCS:S=o) \
 		$(RP2_BOOT:S=o) \
 		$(SRCS:c=o) \
 		$(APP_SRCS:c=o) \
+		$(TINYUSB_SRCS:c=o) \
 
-#		$(TINYUSB_SRCS:c=o) \
 #		$(FREERTOS_SRCS:c=o) \
 #		$(FREERTOS_PLUS_TCP_SRCS:c=o)
 
 # Must exclude pico-sdk/src/rp2_common/pico_stdio_usb/include/tusb_config.h
 # find . | grep tusb_config
 HEADER_DIRS = 			generated \
+				include \
 				$(SDK_HEADER_DIRS) \
 				$(RP2_ASM_HEADER_DIRS) \
-				$(filter-out pico-sdk/src/rp2_common/pico_stdio_usb/include/, $(RP2_HEADER_DIRS)) \
+				$(filter-out pico-sdk/src/rp2_common/pico_stdio_usb/%, $(RP2_HEADER_DIRS)) \
 				$(TINYUSB_HEADER_DIRS) \
 				$(FREERTOS_HEADER_DIRS) \
 				$(FREERTOS_PLUS_TCP_HEADER_DIRS) \
@@ -127,8 +129,8 @@ HEADER_DIRS = 			generated \
 # Preprocessor defines
 # cmake --build build --verbose 2>&1 >log
 DEFINES = 		PICO_RP2350=1 \
-			CFG_TUSB_MCU=OPT_MCU_RP2350 \
-			CFG_TUSB_OS=OPT_OS_FREERTOS \
+			CFG_TUSB_MCU=OPT_MCU_RP2040 \
+			CFG_TUSB_OS=OPT_OS_NONE \
 			DEBUG=1
 
 # Pre-implemented goodies
