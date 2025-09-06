@@ -9,8 +9,7 @@ RP2_HEADER_DIRS = $(wildcard pico-sdk/src/rp2_common/*/include/) $(wildcard pico
 RP2_ASM_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.S)
 RP2_SRCS = $(wildcard pico-sdk/src/rp2_common/*/*.c)  $(wildcard pico-sdk/src/rp2350/*/*.c)
 
-EXCLUDE = 	pico-sdk/src/rp2_common/pico_async_context/% \
-			pico-sdk/src/rp2_common/pico_btstack/% \
+EXCLUDE = 		pico-sdk/src/rp2_common/pico_btstack/% \
 			pico-sdk/src/rp2_common/pico_cyw43_driver/% \
 			pico-sdk/src/rp2_common/pico_cyw43_arch/% \
 			pico-sdk/src/rp2_common/pico_lwip/% \
@@ -19,23 +18,18 @@ EXCLUDE = 	pico-sdk/src/rp2_common/pico_async_context/% \
 			pico-sdk/src/rp2_common/pico_float/%_none.S \
 			pico-sdk/src/rp2_common/pico_printf/printf.c \
 			pico-sdk/src/rp2_common/pico_printf/printf_none.S \
+			pico-sdk/src/rp2_common/pico_async_context/% \
 			pico-sdk/src/rp2_common/pico_stdio_semihosting/% \
 			pico-sdk/src/rp2_common/pico_stdio_uart/% \
 			pico-sdk/src/rp2_common/pico_stdio_usb/% \
 			pico-sdk/src/rp2_common/pico_stdio/% \
 			pico-sdk/src/rp2_common/pico_bootsel_via_double_reset/% \
-			pico-sdk/src/rp2_common/hardware_powman/% \
-			pico-sdk/src/rp2_common/hardware_sha256/% \
 			pico-sdk/src/rp2_common/pico_clib_interface/newlib% \
 			pico-sdk/src/rp2_common/pico_clib_interface/llvm% \
 			pico-sdk/src/rp2_common/pico_mbedtls/% \
-			pico-sdk/src/rp2_common/pico_sha256/% \
 			pico-sdk/src/rp2_common/pico_malloc/% \
 			pico-sdk/src/rp2_common/pico_stdio_rtt/% \
-			pico-sdk/src/rp2_common/hardware_i2c/% \
 			pico-sdk/src/rp2_common/pico_aon_timer/% \
-			pico-sdk/src/rp2_common/pico_i2c_slave/% \
-			pico-sdk/src/rp2_common/pico_rand/% \
 			pico-sdk/src/rp2_common/pico_divider/% \
 			pico-sdk/src/rp2_common/hardware_divider/% \
 			pico-sdk/src/rp2_common/hardware_rtc/% \
@@ -135,52 +129,7 @@ HEADER_DIRS = 			generated \
 DEFINES = 		PICO_RP2350=1 \
 			CFG_TUSB_MCU=OPT_MCU_RP2350 \
 			CFG_TUSB_OS=OPT_OS_FREERTOS \
-			DEBUG=1 \
-			PICO_DIVIDER_CALL_IDIV0=0 \
-			PICO_DIVIDER_CALL_LDIV0=0 \
-			LIB_PICO_BIT_OPS=1 \
-			LIB_PICO_BIT_OPS_PICO=1 \
-			LIB_PICO_DIVIDER=0 \
-			LIB_PICO_DIVIDER_HARDWARE=0 \
-			LIB_PICO_DOUBLE=1 \
-			LIB_PICO_DOUBLE_PICO=1 \
-			LIB_PICO_FIX_RP2040_USB_DEVICE_ENUMERATION=1 \
-			LIB_PICO_FLOAT=1 \
-			LIB_PICO_FLOAT_PICO=1 \
-			LIB_PICO_INT64_OPS=1 \
-			LIB_PICO_INT64_OPS_PICO=1 \
-			LIB_PICO_MALLOC=1 \
-			LIB_PICO_MEM_OPS=1 \
-			LIB_PICO_MEM_OPS_PICO=1 \
-			LIB_PICO_PLATFORM=1 \
-			LIB_PICO_PRINTF=0 \
-			LIB_PICO_PRINTF_PICO=0 \
-			LIB_PICO_RUNTIME=1 \
-			LIB_PICO_STANDARD_LINK=1 \
-			LIB_PICO_STDIO=0 \
-			LIB_PICO_STDIO_UART=0 \
-			LIB_PICO_STDIO_USB=0 \
-			LIB_PICO_STDLIB=1 \
-			LIB_PICO_SYNC=1 \
-			LIB_PICO_SYNC_CRITICAL_SECTION=1 \
-			LIB_PICO_SYNC_MUTEX=1 \
-			LIB_PICO_SYNC_SEM=1 \
-			LIB_PICO_TIME=1 \
-			LIB_PICO_UNIQUE_ID=1 \
-			LIB_PICO_UTIL=1 \
-			PICO_BOARD=\"pico\" \
-			PICO_BUILD=1 \
-			PICO_CMAKE_BUILD_TYPE=\"Debug\" \
-			PICO_COPY_TO_RAM=0 \
-			PICO_CXX_ENABLE_EXCEPTIONS=0 \
-			PICO_NO_FLASH=0 \
-			PICO_NO_HARDWARE=0 \
-			PICO_ON_DEVICE=1 \
-			PICO_RP2040_USB_DEVICE_UFRAME_FIX=1 \
-			PICO_TARGET_NAME=\"TIMERS_DEMO\" \
-			PICO_USE_BLOCKED_RAM=0 \
-			PICO_ENTER_USB_BOOT_ON_EXIT=1 \
-			PICO_CLIB=picolibc
+			DEBUG=1
 
 # Pre-implemented goodies
 # git grep pico_wrap_function
