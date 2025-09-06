@@ -107,8 +107,8 @@ OBJS = 	$(ASM_SRCS:S=o) \
 		$(SRCS:c=o) \
 		$(APP_SRCS:c=o) \
 		$(TINYUSB_SRCS:c=o) \
+		$(FREERTOS_SRCS:c=o) \
 
-#		$(FREERTOS_SRCS:c=o) \
 #		$(FREERTOS_PLUS_TCP_SRCS:c=o)
 
 # Must exclude pico-sdk/src/rp2_common/pico_stdio_usb/include/tusb_config.h
