@@ -162,12 +162,12 @@ LDSCRIPT = pico-sdk/src/rp2_common/pico_crt0/rp2350/memmap_default.ld
 LDINCLUDE = -L generated/ -L /usr/lib/gcc/arm-none-eabi/10.3.1/thumb/v8-m.main+fp/softfp/
 
 INCLUDE = $(HEADER_DIRS:%=-I"%") -I"."
-MCUFLAGS = -mthumb -mcpu=cortex-m33 -march=armv8-m.main+fp+dsp -mfloat-abi=softfp -mcmse
-CFLAGS = -Og -ggdb3 -Wall -Wextra $(MCUFLAGS) $(INCLUDE) $(DEFINES:%=-D"%") --specs=./picolibc.specs
+MCUFLAGS = -mthumb -mcpu=cortex-m33 -march=armv8-m.main+fp+dsp -mfloat-abi=softfp
+CFLAGS = -O2 -flto -ggdb3 -Wall -Wextra $(MCUFLAGS) $(INCLUDE) $(DEFINES:%=-D"%")
 
 # If using newlib, add -nostartfiles
 # Without it a crash happens inside frame_dummy()
-LDFLAGS = $(MCU_FLAGS) -T $(LDSCRIPT) $(LDINCLUDE) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map -lgcc --specs=./picolibc.specs -nostdlib
+LDFLAGS = -T $(LDSCRIPT) $(LDINCLUDE) $(LDWRAP:%=-Wl,--wrap=%) -Wl,--print-memory-usage -Wl,-Map=firmware.map -lgcc --specs=picolibc.specs -nostdlib
 
 CC = arm-none-eabi-gcc
 
@@ -179,7 +179,7 @@ firmware.uf2: firmware.elf
 
 firmware.elf: $(OBJS)
 	@echo " [LD] firmware.elf"
-	@$(CC) -ggdb3 $(OBJS) libc.a -o firmware.elf $(LDFLAGS)
+	@$(CC) $(CFLAGS) $(OBJS) libc.a -o firmware.elf $(LDFLAGS)
 
 %.o: %.c
 	@echo " [CC]" $^
