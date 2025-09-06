@@ -27,10 +27,6 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
 	while (1) {};
 }
 
-uint32_t board_millis() {
-	return 0;
-}
-
 int board_uart_write(void const *buf, int len) {
 	(void)buf;
 	(void)len;
@@ -65,6 +61,10 @@ void init_task(void* params) {
 		tud_cdc_n_write_char(1, 'B');
 		tud_cdc_n_write_flush(0);
 		tud_cdc_n_write_flush(1);
+
+		uint32_t now = board_millis();
+
+		gpio_put(LED_PIN, (now & 0xFF) > 0x80);
 
 		tud_task();
 

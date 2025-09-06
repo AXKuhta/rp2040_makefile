@@ -55,7 +55,7 @@ TINYUSB_HEADER_DIRS_REL = 	src/ \
 							hw/ \
 							lib/networking/
 
-TINYUSB_COMMON_SRCS = src/tusb.c src/common/tusb_fifo.c hw/bsp/board.c
+TINYUSB_COMMON_SRCS = src/tusb.c src/common/tusb_fifo.c
 TINYUSB_DEVICE_SRCS = 	src/portable/raspberrypi/rp2040/dcd_rp2040.c \
 						src/portable/raspberrypi/rp2040/rp2040_usb.c \
 						src/device/usbd.c \
@@ -130,7 +130,7 @@ HEADER_DIRS = 			generated \
 # cmake --build build --verbose 2>&1 >log
 DEFINES = 		PICO_RP2350=1 \
 			CFG_TUSB_MCU=OPT_MCU_RP2040 \
-			CFG_TUSB_OS=OPT_OS_NONE \
+			CFG_TUSB_OS=OPT_OS_FREERTOS \
 			DEBUG=1
 
 # Pre-implemented goodies
