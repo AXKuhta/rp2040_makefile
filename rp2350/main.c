@@ -64,6 +64,12 @@ void parport_init() {
 		return;
 	}
 
+	pio_gpio_init(pio, 22);
+	pio_gpio_init(pio, 14);
+	pio_gpio_init(pio, 15);
+	pio_gpio_init(pio, 16);
+	pio_gpio_init(pio, 17);
+
 	pio_sm_config c = modulation_program_get_default_config(offset);
 
 	// Output Shift Register configuration settings
@@ -76,7 +82,7 @@ void parport_init() {
 
 	// pico-sdk/src/rp2_common/pico_status_led/ws2812.pio
 	sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
-	sm_config_set_clkdiv(&c, 0); // OK?
+	sm_config_set_clkdiv(&c, 1);
 
 	pio_sm_init(pio, sm, offset, &c);
 	pio_sm_set_enabled(pio, sm, true);
@@ -99,33 +105,46 @@ void usb_task(void* params) {
 	(void)params;
 }
 
-// Feed the parallel port!
+/*
 void tud_vendor_rx_cb(uint8_t itf, uint8_t const* buffer, uint16_t bufsize) {
 	(void) itf;
 
-	// First in, first out
-	while (bufsize >= 4) {
+	// if using RX buffered is enabled, we need to flush the buffer to make room for new data
+	#if CFG_TUD_VENDOR_RX_BUFSIZE > 0
+	tud_vendor_read_flush();
+	#endif
+}*/
+
+// Feed the parallel port!
+void parport_task(void* params) {
+	uint8_t buffer[4];
+
+	while (1) {
+		int n = tud_vendor_read(buffer, 4);
+
+		if (n == 0) {
+			vTaskDelay(0); // Yield
+			continue;
+		}
+
+		if (n < 4) {
+			printf("Incomplete word!\n");
+			continue;
+		}
+
 		uint32_t word =
 			buffer[0] * 1 +
 			buffer[1] * 256 +
 			buffer[2] * 256*256 +
 			buffer[3] * 256*256*256;
 
-		buffer += 4;
-		bufsize -=4;
-
 		pio_sm_put_blocking(pio, sm, word);
 	}
 
-	if (bufsize) {
-		printf("Incomplete word!\n"); // malloc in an interrupt...
-	}
-
-	// if using RX buffered is enabled, we need to flush the buffer to make room for new data
-	#if CFG_TUD_VENDOR_RX_BUFSIZE > 0
-	tud_vendor_read_flush();
-	#endif
+	(void)params;
 }
+
+uint32_t next_message_at = 0;
 
 void init_task(void* params) {
 	xTaskCreate( usb_task, "usb", configMINIMAL_STACK_SIZE*8, NULL, 1, NULL);
@@ -133,11 +152,20 @@ void init_task(void* params) {
 
 	parport_init();
 
+	xTaskCreate( parport_task, "parport", configMINIMAL_STACK_SIZE*8, NULL, 1, NULL);
+
 	printf(" === System ready ===\n");
 
 	while (1) {
-		gpio_put(LED_PIN, last_usb + 50 > board_millis() );
-		vTaskDelay(1000);
+		uint32_t now = board_millis();
+
+		if (now >= next_message_at) {
+			printf("FIFO level: %d\n", pio_sm_get_tx_fifo_level(pio, sm));
+			next_message_at = now + 1000;
+		}
+
+		gpio_put(LED_PIN, last_usb + 50 > now);
+		vTaskDelay(1);
 	}
 
 	(void)params;
