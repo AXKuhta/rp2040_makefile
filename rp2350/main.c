@@ -52,29 +52,25 @@ void _set_tls(void* tls) {
 const int GPIO_BASE = 14;
 const int GPIO_COUNT = 4;
 
-unsigned int sm;
-PIO pio;
+unsigned int sm = 0;
+PIO pio = pio0;
 
 // https://github.com/raspberrypi/pico-examples/blob/master/pio/onewire/onewire_library/onewire_library.pio
 void parport_init() {
-	unsigned int offset = 0;
+	unsigned int offset = pio_add_program(pio, &modulation_program);
 
-	bool success = pio_claim_free_sm_and_add_program_for_gpio_range(&modulation_program, &pio, &sm, &offset, GPIO_BASE, GPIO_COUNT, true);
+	printf("Program offset: %lu\n", offset);
 
-	if (success) {
-		printf("PIO claimed\n");
-	} else {
-		printf("PIO error\n");
-		return;
-	}
+	pio_sm_config c = modulation_program_get_default_config(offset);
+
+	pio_sm_set_consecutive_pindirs(pio, sm, GPIO_BASE, 4, true);
+	pio_sm_set_consecutive_pindirs(pio, sm, 22, 1, false);
 
 	pio_gpio_init(pio, 22);
 	pio_gpio_init(pio, 14);
 	pio_gpio_init(pio, 15);
 	pio_gpio_init(pio, 16);
 	pio_gpio_init(pio, 17);
-
-	pio_sm_config c = modulation_program_get_default_config(offset);
 
 	// Output Shift Register configuration settings
 	sm_config_set_out_shift(
@@ -89,6 +85,8 @@ void parport_init() {
 	sm_config_set_clkdiv(&c, 1);
 
 	pio_sm_init(pio, sm, offset, &c);
+	pio_sm_set_out_pins(pio, sm, 14, 4);
+
 	pio_sm_set_enabled(pio, sm, true);
 
 	printf("PIO running\n");
@@ -170,7 +168,7 @@ uint32_t next_message_at = 0;
 void status_report() {
 	printf("Current draw: %.1F mA, FIFO level: %d\r\n",
 		amp_meter_sample(),
-		 pio_sm_get_tx_fifo_level(pio, sm));
+		pio_sm_get_tx_fifo_level(pio, sm));
 }
 
 void init_task(void* params) {
@@ -181,6 +179,9 @@ void init_task(void* params) {
 
 	amp_meter_init();
 	parport_init();
+
+	void ad9957_init();
+	ad9957_init();
 
 	xTaskCreate( parport_task, "parport", configMINIMAL_STACK_SIZE*8, NULL, 1, NULL);
 
