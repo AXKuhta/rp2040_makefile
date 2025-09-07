@@ -1,4 +1,8 @@
 
+#include <stdlib.h>
+
+#include "hardware/adc.h"
+
 #include "pico/bootrom.h"
 #include "pico/stdlib.h"
 
@@ -144,12 +148,38 @@ void parport_task(void* params) {
 	(void)params;
 }
 
+void amp_meter_init() {
+	adc_init();
+	adc_gpio_init(28);
+	adc_select_input(2);
+}
+
+// Measurements using 3.3V ADC over 3.3ohm shunt
+float amp_meter_sample() {
+	double acc = 0.0;
+
+	for (int i = 0; i < 128; i++) {
+		acc += adc_read();
+	}
+
+	return acc / 128.0 / 4096.0 * 3.3 / 3.3 * 1000.0;
+}
+
 uint32_t next_message_at = 0;
+
+void status_report() {
+	printf("Current draw: %.1F mA, FIFO level: %d\r\n",
+		amp_meter_sample(),
+		 pio_sm_get_tx_fifo_level(pio, sm));
+}
 
 void init_task(void* params) {
 	xTaskCreate( usb_task, "usb", configMINIMAL_STACK_SIZE*8, NULL, 1, NULL);
-	vTaskDelay(5000);
+	vTaskDelay(2000);
 
+	//printf(" === Hard fault indicator: %08lx  ===\n", hf_keep);
+
+	amp_meter_init();
 	parport_init();
 
 	xTaskCreate( parport_task, "parport", configMINIMAL_STACK_SIZE*8, NULL, 1, NULL);
@@ -160,8 +190,8 @@ void init_task(void* params) {
 		uint32_t now = board_millis();
 
 		if (now >= next_message_at) {
-			printf("FIFO level: %d\n", pio_sm_get_tx_fifo_level(pio, sm));
-			next_message_at = now + 1000;
+			next_message_at = now + 100;
+			status_report();
 		}
 
 		gpio_put(LED_PIN, last_usb + 50 > now);
