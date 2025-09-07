@@ -80,7 +80,8 @@ static uint8_t serial_read() {
 }
 
 int len_lut[] = {
-	[0] = 4
+	[0x00] = 4,
+	[0x0E] = 8
 };
 
 static void read_reg(uint8_t n) {
@@ -141,7 +142,7 @@ void ad9957_init() {
 	serial_write(0x00);
 	serial_write(0xFF); // Full scale current to 30mA (this is safe with 10ohm load)
 
-	ftw_t ftw = to_ftw(0.1*1000);
+	ftw_t ftw = to_ftw(9.9*1000*1000);
 
 	// Write profiles
 	for (int i = 0; i < 8; i++) {
@@ -155,4 +156,6 @@ void ad9957_init() {
 		serial_write(ftw.words[2]);
 		serial_write(ftw.words[3]);
 	}
+
+	read_reg(0x0E);
 }
